@@ -1,7 +1,6 @@
 package com.example.demo.domain.address.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +19,7 @@ import com.example.demo.domain.address.dto.response.GetAddressInfoResponse;
 import com.example.demo.domain.address.dto.response.UpdateAddressResponse;
 import com.example.demo.domain.address.service.AddressService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -35,13 +35,13 @@ public class AddressController {
 	}
 
 	@PatchMapping("/{userId}/{addressId}")
-	public ResponseEntity<UpdateAddressResponse> updateAddress(@RequestBody UpdateAddressRequest request, @PathVariable Long userId
+	public ResponseEntity<UpdateAddressResponse> updateAddress(@Valid @RequestBody UpdateAddressRequest request, @PathVariable Long userId
 	, @PathVariable Long addressId){
 		return ResponseEntity.status(HttpStatus.OK).body(addressService.UpdateAddress(request, userId, addressId));
 	}
 
 	@PostMapping("/{userId}")
-	public ResponseEntity<CreateAddressResponse> createAddress(@RequestBody CreateAddressRequest request, @PathVariable Long userId){
+	public ResponseEntity<CreateAddressResponse> createAddress(@Valid @RequestBody CreateAddressRequest request, @PathVariable Long userId){
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(addressService.createAddress(request, userId));
 	}

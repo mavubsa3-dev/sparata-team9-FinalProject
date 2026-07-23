@@ -16,6 +16,7 @@ import com.example.demo.domain.user.dto.response.GetUserInfoResponse;
 import com.example.demo.domain.user.dto.response.UpdateUserResponse;
 import com.example.demo.domain.user.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,7 +32,7 @@ public class UserController {
 	}
 
 	@PatchMapping("/{userId}")
-	public ResponseEntity<UpdateUserResponse> updateUserInfo(@PathVariable Long userId, @RequestBody UpdateUserinfoRequest request){
+	public ResponseEntity<UpdateUserResponse> updateUserInfo(@PathVariable Long userId, @Valid @RequestBody UpdateUserinfoRequest request){
 		return ResponseEntity.status(HttpStatus.OK).body(userService.updateUserInfo(request, userId));
 	}
 }
