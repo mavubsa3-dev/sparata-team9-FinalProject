@@ -15,7 +15,11 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRODUCT_NOT_FOUND", "상품을 찾을 수 없습니다."),
 
 	// Cart
-	CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_NOT_FOUND", "장바구니를 찾을 수 없습니다.");
+
+	CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART_NOT_FOUND", "장바구니를 찾을 수 없습니다."),
+	INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "INSUFFICIENT_STOCK", "재고가 부족합니다."),
+	PRODUCT_NOT_PURCHASABLE(HttpStatus.BAD_REQUEST, "PRODUCT_NOT_PURCHASABLE", "구매할 수 없는 상품입니다."),
+	DUPLICATE_CART_ITEM(HttpStatus.CONFLICT, "DUPLICATE_CART_ITEM", "이미 처리 중인 요청입니다. 다시 시도해주세요.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
