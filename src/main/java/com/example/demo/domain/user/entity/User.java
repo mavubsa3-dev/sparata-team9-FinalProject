@@ -48,4 +48,16 @@ public class User extends BaseTimeEntity {
 		this.phoneNumber = phoneNumber;
 		this.role = UserRole.MEMBER;
 	}
+
+	public void updateEmail(String email){
+		this.email = email;
+	}
+
+	public void updateName(String name){
+		this.name = name;
+	}
+
+	public void updatePhoneNumber(String phoneNumber){
+		this.phoneNumber = phoneNumber;
+	}
 }
