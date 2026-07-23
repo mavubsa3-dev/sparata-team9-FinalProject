@@ -62,6 +62,11 @@ public class Product extends BaseTimeEntity {
         this.status = ProductStatus.ON_SALE;
     }
 
+    public boolean isPurchasable() {
+        return this.status == ProductStatus.ON_SALE
+                && this.stock != null && this.stock > 0;
+    }
+
     public boolean isHidden() {
         return this.status == ProductStatus.HIDDEN;
     }
