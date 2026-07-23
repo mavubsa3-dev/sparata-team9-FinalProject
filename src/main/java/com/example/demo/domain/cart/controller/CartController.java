@@ -1,0 +1,24 @@
+package com.example.demo.domain.cart.controller;
+
+import com.example.demo.domain.cart.dto.response.GetCartResponse;
+import com.example.demo.domain.cart.service.CartService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/api/carts")
+public class CartController {
+
+    private final CartService cartService;
+
+    // 로그인 기능 완성되면 @RequestParam Long userId를 인증 정보에서 추출하는 방식으로 교체
+    @GetMapping
+    public ResponseEntity<GetCartResponse> getCart(@RequestParam Long userId) {
+        return ResponseEntity.ok(cartService.getCart(userId));
+    }
+}
