@@ -1,7 +1,9 @@
 package com.example.demo.domain.product.controller;
 
 import com.example.demo.domain.product.dto.response.GetOneProductResponse;
+import com.example.demo.domain.product.dto.response.GetProductListResponse;
 import com.example.demo.domain.product.service.ProductService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
     private final ProductService productService;
+
+    @GetMapping
+    public ResponseEntity<List<GetProductListResponse>> getProducts() {
+        return ResponseEntity.ok(productService.getProducts());
+    }
 
     @GetMapping("/{productId}")
     public ResponseEntity<GetOneProductResponse> getProduct(@PathVariable Long productId) {
