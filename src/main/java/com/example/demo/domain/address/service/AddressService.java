@@ -35,7 +35,7 @@ public class AddressService {
 	}
 
 	@Transactional
-	public UpdateAddressResponse UpdateAddress(UpdateAddressRequest request, Long userId, Long addressId) {
+	public UpdateAddressResponse updateAddress(UpdateAddressRequest request, Long userId, Long addressId) {
 		Address address = addressRepository.findByIdAndUserId(addressId, userId).orElseThrow(
 			() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND)
 		);

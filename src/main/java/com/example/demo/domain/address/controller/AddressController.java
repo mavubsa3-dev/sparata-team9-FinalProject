@@ -37,7 +37,7 @@ public class AddressController {
 	@PatchMapping("/{userId}/{addressId}")
 	public ResponseEntity<UpdateAddressResponse> updateAddress(@Valid @RequestBody UpdateAddressRequest request, @PathVariable Long userId
 	, @PathVariable Long addressId){
-		return ResponseEntity.status(HttpStatus.OK).body(addressService.UpdateAddress(request, userId, addressId));
+		return ResponseEntity.status(HttpStatus.OK).body(addressService.updateAddress(request, userId, addressId));
 	}
 
 	@PostMapping("/{userId}")
