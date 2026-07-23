@@ -19,8 +19,8 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    public List<GetProductListResponse> getProducts() {
-        return productRepository.findAllByStatusNot(ProductStatus.HIDDEN)
+    public List<GetProductListResponse> getProducts(Long categoryId) {
+        return productRepository.findProductsByFilter(ProductStatus.HIDDEN, categoryId)
                 .stream()
                 .map(GetProductListResponse::from)
                 .toList();

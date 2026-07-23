@@ -13,6 +13,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.category WHERE p.id = :id")
     Optional<Product> findByIdWithCategory(@Param("id") Long id);
 
-    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.category WHERE p.status <> :status ORDER BY p.id DESC")
-    List<Product> findAllByStatusNot(@Param("status") ProductStatus status);
+    @Query("""
+            SELECT p FROM Product p LEFT JOIN FETCH p.category
+            WHERE p.status <> :status
+            AND (:categoryId IS NULL OR p.category.id = :categoryId)
+            ORDER BY p.id DESC
+            """)
+    List<Product> findProductsByFilter(
+            @Param("status") ProductStatus status,
+            @Param("categoryId") Long categoryId
+    );
 }
