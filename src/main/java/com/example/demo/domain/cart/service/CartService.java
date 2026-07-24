@@ -3,8 +3,10 @@ package com.example.demo.domain.cart.service;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.cart.dto.request.AddCartItemRequest;
+import com.example.demo.domain.cart.dto.request.UpdateCartItemRequest;
 import com.example.demo.domain.cart.dto.response.AddCartItemResponse;
 import com.example.demo.domain.cart.dto.response.GetCartResponse;
+import com.example.demo.domain.cart.dto.response.UpdateCartItemResponse;
 import com.example.demo.domain.cart.entity.Cart;
 import com.example.demo.domain.cart.entity.CartItem;
 import com.example.demo.domain.cart.repository.CartItemRepository;
@@ -65,6 +67,30 @@ public class CartService {
         }
 
         return AddCartItemResponse.from(cartItem);
+    }
+
+    @Transactional
+    public UpdateCartItemResponse updateCartItem(Long userId, Long cartItemId, UpdateCartItemRequest request) {
+        CartItem cartItem = cartItemRepository.findByIdWithProduct(cartItemId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_ITEM_NOT_FOUND));
+
+        if (!cartItem.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.CART_ITEM_ACCESS_DENIED);
+        }
+
+        Product product = cartItem.getProduct();
+
+        if (!product.isPurchasable()) {
+            throw new CustomException(ErrorCode.PRODUCT_NOT_PURCHASABLE);
+        }
+
+        if (product.getStock() == null || product.getStock() < request.quantity()) {
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
+        }
+
+        cartItem.updateQuantity(request.quantity());
+
+        return UpdateCartItemResponse.from(cartItem);
     }
 
     private CartItem createCartItem(Cart cart, Product product, int quantity) {
