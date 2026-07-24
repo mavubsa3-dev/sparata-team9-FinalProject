@@ -8,6 +8,8 @@ import com.example.demo.domain.cart.entity.CartItem;
 import com.example.demo.domain.cart.repository.CartItemRepository;
 import com.example.demo.domain.order.dto.CreateOrderRequest;
 import com.example.demo.domain.order.dto.CreateOrderResponse;
+import com.example.demo.domain.order.dto.GetOrderResponse;
+import com.example.demo.domain.order.dto.GetOrderDetailResponse;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
@@ -70,6 +72,20 @@ public class OrderService {
         cartItemRepository.deleteAll(cartItems);
 
         return CreateOrderResponse.from(savedOrder);
+    }
+
+    @Transactional(readOnly = true)
+    public List<GetOrderResponse> getOrders(Long userId) {
+        return orderRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(GetOrderResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public GetOrderDetailResponse getOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findDetailByIdAndUserId(orderId, userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        return GetOrderDetailResponse.from(order);
     }
 
     private void validateCartItemsExist(List<CartItem> cartItems, List<Long> requestedIds) {
