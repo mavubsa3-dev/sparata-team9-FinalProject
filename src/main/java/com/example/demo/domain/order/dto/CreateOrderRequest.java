@@ -1,4 +1,4 @@
-package com.example.demo.domain.order.dto.request;
+package com.example.demo.domain.order.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

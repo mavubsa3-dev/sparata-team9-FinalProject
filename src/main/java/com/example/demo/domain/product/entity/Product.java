@@ -65,4 +65,8 @@ public class Product extends BaseTimeEntity {
     public boolean isHidden() {
         return this.status == ProductStatus.HIDDEN;
     }
+
+    public void decreaseStock(int quantity) {
+        this.stock -= quantity;
+    }
 }

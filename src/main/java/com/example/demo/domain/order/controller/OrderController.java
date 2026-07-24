@@ -1,7 +1,7 @@
 package com.example.demo.domain.order.controller;
 
-import com.example.demo.domain.order.dto.request.CreateOrderRequest;
-import com.example.demo.domain.order.dto.response.CreateOrderResponse;
+import com.example.demo.domain.order.dto.CreateOrderRequest;
+import com.example.demo.domain.order.dto.CreateOrderResponse;
 import com.example.demo.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -6,12 +6,13 @@ import com.example.demo.domain.address.entity.Address;
 import com.example.demo.domain.address.repository.AddressRepository;
 import com.example.demo.domain.cart.entity.CartItem;
 import com.example.demo.domain.cart.repository.CartItemRepository;
-import com.example.demo.domain.order.dto.request.CreateOrderRequest;
-import com.example.demo.domain.order.dto.response.CreateOrderResponse;
+import com.example.demo.domain.order.dto.CreateOrderRequest;
+import com.example.demo.domain.order.dto.CreateOrderResponse;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
 import com.example.demo.domain.product.entity.Product;
+import com.example.demo.domain.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,11 +42,11 @@ public class OrderService {
         Order order = new Order(
                 cartItems.get(0).getUser(),
                 generateOrderNumber(),
-                address.getRecipientName(),
-                address.getRecipientPhone(),
+                address.getName(),
+                address.getPhoneNumber(),
                 address.getZipCode(),
-                address.getAddress1(),
-                address.getAddress2()
+                address.getBasicAddress(),
+                address.getDetailAddress()
         );
 
         for (CartItem cartItem : cartItems) {
@@ -92,7 +93,7 @@ public class OrderService {
     }
 
     private void validateProductOnSale(Product product) {
-        if (!product.isOnSale()) {
+        if (product.getStatus() != ProductStatus.ON_SALE) {
             throw new CustomException(ErrorCode.PRODUCT_NOT_ON_SALE);
         }
     }

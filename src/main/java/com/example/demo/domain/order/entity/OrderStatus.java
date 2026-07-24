@@ -1,4 +1,4 @@
-package com.example.demo.domain.user.entity.order.entity;
+package com.example.demo.domain.order.entity;
 
 public enum OrderStatus {
     PAYMENT_PENDING, // 결제 대기

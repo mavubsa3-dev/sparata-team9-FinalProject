@@ -3,6 +3,7 @@ package com.example.demo.domain.order.entity;
 import com.example.demo.common.entity.BaseTimeEntity;
 import com.example.demo.domain.user.entity.User;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

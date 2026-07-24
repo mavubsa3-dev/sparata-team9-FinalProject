@@ -1,4 +1,4 @@
-package com.example.demo.domain.order.dto.response;
+package com.example.demo.domain.order.dto;
 
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderStatus;
