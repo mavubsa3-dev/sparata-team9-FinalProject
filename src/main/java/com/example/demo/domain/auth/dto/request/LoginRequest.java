@@ -1,7 +1,5 @@
 package com.example.demo.domain.auth.dto.request;
 
-import org.aspectj.weaver.ast.Not;
-
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 

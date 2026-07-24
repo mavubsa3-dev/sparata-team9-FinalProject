@@ -30,7 +30,7 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.OK).body(userService.userInfo(userId));
 	}
 
-	@PatchMapping("/{userId}")
+	@PatchMapping
 	public ResponseEntity<UpdateUserResponse> updateUserInfo(@AuthenticationPrincipal Long userId, @Valid @RequestBody UpdateUserinfoRequest request){
 		return ResponseEntity.status(HttpStatus.OK).body(userService.updateUserInfo(request, userId));
 	}

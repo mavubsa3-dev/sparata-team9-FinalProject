@@ -11,7 +11,6 @@ import com.example.demo.domain.auth.dto.request.LoginRequest;
 import com.example.demo.domain.auth.dto.request.SignupRequest;
 import com.example.demo.domain.auth.dto.response.LoginResponse;
 import com.example.demo.domain.auth.dto.response.SignupResponse;
-import com.example.demo.domain.auth.repository.AuthRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 
