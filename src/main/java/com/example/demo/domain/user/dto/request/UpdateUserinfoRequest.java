@@ -10,6 +10,8 @@ public record UpdateUserinfoRequest(
 
 	String name,
 
+	String password,
+
 	@Pattern(regexp = "^01(?:0|1|[6-9])[.-]?(\\d{3}|\\d{4})[.-]?(\\d{4})$", message = "올바른 휴대폰 번호 형식이 아닙니다.")
 	String phoneNumber
 ) {

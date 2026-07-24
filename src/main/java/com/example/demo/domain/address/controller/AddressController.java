@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,19 +30,19 @@ public class AddressController {
 
 	private final AddressService addressService;
 
-	@GetMapping("/{userId}")
-	public ResponseEntity<List<GetAddressInfoResponse>> getAddress(@PathVariable Long userId){
+	@GetMapping
+	public ResponseEntity<List<GetAddressInfoResponse>> getAddress(@AuthenticationPrincipal Long userId){
 		return ResponseEntity.status(HttpStatus.OK).body(addressService.getAddressInfo(userId));
 	}
 
-	@PatchMapping("/{userId}/{addressId}")
-	public ResponseEntity<UpdateAddressResponse> updateAddress(@Valid @RequestBody UpdateAddressRequest request, @PathVariable Long userId
+	@PatchMapping("/{addressId}")
+	public ResponseEntity<UpdateAddressResponse> updateAddress(@Valid @RequestBody UpdateAddressRequest request, @AuthenticationPrincipal Long userId
 	, @PathVariable Long addressId){
 		return ResponseEntity.status(HttpStatus.OK).body(addressService.updateAddress(request, userId, addressId));
 	}
 
-	@PostMapping("/{userId}")
-	public ResponseEntity<CreateAddressResponse> createAddress(@Valid @RequestBody CreateAddressRequest request, @PathVariable Long userId){
+	@PostMapping
+	public ResponseEntity<CreateAddressResponse> createAddress(@Valid @RequestBody CreateAddressRequest request, @AuthenticationPrincipal Long userId){
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(addressService.createAddress(request, userId));
 	}
