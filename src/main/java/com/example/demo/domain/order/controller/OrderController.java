@@ -41,4 +41,13 @@ public class OrderController {
         GetOrderDetailResponse response = orderService.getOrder(userId, orderId);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/{orderId}/cancel")
+    public ResponseEntity<Void> cancelOrder(
+            @LoginUser Long userId,
+            @PathVariable Long orderId
+    ) {
+        orderService.cancelOrder(userId, orderId);
+        return ResponseEntity.noContent().build();
+    }
 }

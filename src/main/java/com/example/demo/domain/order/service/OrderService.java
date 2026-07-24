@@ -88,6 +88,32 @@ public class OrderService {
         return GetOrderDetailResponse.from(order);
     }
 
+    @Transactional
+    public void cancelOrder(Long userId, Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        validateOrderOwner(order, userId);
+        validateCancelable(order);
+
+        for (OrderItem orderItem : order.getOrderItems()) {
+            orderItem.getProduct().increaseStock(orderItem.getQuantity());
+        }
+
+        order.cancel();
+    }
+
+    private void validateOrderOwner(Order order, Long userId) {
+        if (!order.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.ORDER_ACCESS_DENIED);
+        }
+    }
+
+    private void validateCancelable(Order order) {
+        if (!order.isPaymentPending()) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_CANCEL);
+        }
+    }
+
     private void validateCartItemsExist(List<CartItem> cartItems, List<Long> requestedIds) {
         if (cartItems.size() != requestedIds.size()) {
             throw new CustomException(ErrorCode.CART_ITEM_NOT_FOUND);
