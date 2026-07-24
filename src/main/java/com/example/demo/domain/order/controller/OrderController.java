@@ -9,7 +9,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -21,33 +24,30 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<CreateOrderResponse> createOrder(
-            @LoginUser Long userId,
             @Valid @RequestBody CreateOrderRequest request
     ) {
-        CreateOrderResponse response = orderService.createOrder(userId, request);
+        CreateOrderResponse response = orderService.createOrder(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     @GetMapping
-    public ResponseEntity<List<GetOrderResponse>> getOrders(@LoginUser Long userId) {
-        List<GetOrderResponse> response = orderService.getOrders(userId);
+    public ResponseEntity<List<GetOrderResponse>> getOrders() {
+        List<GetOrderResponse> response = orderService.getOrders(getCurrentUserId());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{orderId}")
-    public ResponseEntity<GetOrderDetailResponse> getOrder(
-            @LoginUser Long userId,
-            @PathVariable Long orderId
-    ) {
-        GetOrderDetailResponse response = orderService.getOrder(userId, orderId);
+    public ResponseEntity<GetOrderDetailResponse> getOrder(@PathVariable Long orderId) {
+        GetOrderDetailResponse response = orderService.getOrder(getCurrentUserId(), orderId);
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{orderId}/cancel")
-    public ResponseEntity<Void> cancelOrder(
-            @LoginUser Long userId,
-            @PathVariable Long orderId
-    ) {
-        orderService.cancelOrder(userId, orderId);
+    public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId) {
+        orderService.cancelOrder(getCurrentUserId(), orderId);
         return ResponseEntity.noContent().build();
+    }
+
+    private Long getCurrentUserId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
