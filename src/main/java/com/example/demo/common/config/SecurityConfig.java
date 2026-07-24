@@ -13,11 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.servlet.DispatcherServlet;
-
 import com.example.demo.common.security.JwtFilter;
-import com.example.demo.common.security.JwtUtil;
-
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -34,7 +30,7 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http, CorsConfigurationSource corsConfigurationSource,
-		AuthenticationEntryPoint authenticationEntryPoint, AccessDeniedHandler accessDeniedHandler) throws Exception{
+		AuthenticationEntryPoint authenticationEntryPoint, AccessDeniedHandler accessDeniedHandler){
 		http
 
 			// CSRF, 기본 폼 로그인 비활성화
