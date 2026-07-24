@@ -1,5 +1,6 @@
 package com.example.demo.domain.user.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
 
 	@Transactional(readOnly = true)
 	public GetUserInfoResponse userInfo(Long userId) {
@@ -38,6 +40,7 @@ public class UserService {
 		// 회원 정보 업데이트
 		if (request.email() != null) user.updateEmail(request.email());
 		if (request.name() != null) user.updateName(request.name());
+		if (request.password() != null) user.updatePassword(passwordEncoder.encode(request.password()));
 		if (request.phoneNumber() != null) user.updatePhoneNumber(request.phoneNumber());
 
 		return UpdateUserResponse.from(user);
