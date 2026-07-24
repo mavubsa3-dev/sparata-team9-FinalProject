@@ -102,4 +102,12 @@ public class CartService {
             throw new CustomException(ErrorCode.DUPLICATE_CART_ITEM);
         }
     }
+
+    @Transactional
+    public void clearCart(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_NOT_FOUND));
+
+        cartItemRepository.deleteAllByCartId(cart.getId());
+    }
 }
