@@ -41,12 +41,12 @@ public class User extends BaseTimeEntity {
 	@Column(nullable = false, length = 20)
 	private UserRole role;
 
-	public User(String email, String password, String name, String phoneNumber){
+	public User(String email, String password, String name, String phoneNumber, UserRole role){
 		this.email = email;
 		this.password = password;
 		this.name = name;
 		this.phoneNumber = phoneNumber;
-		this.role = UserRole.USER;
+		this.role = role;
 	}
 
 	public void updateEmail(String email){
