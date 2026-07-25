@@ -77,7 +77,7 @@ public class CategoryService {
 			() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
 		);
 
-		// 지금은 하드 삭제 -> 소프트 삭제로 변경할 지 의논 필요(상품 상태 DELETE로 변경 여부)
+
 		categoryRepository.delete(category);
 		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
 

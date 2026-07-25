@@ -89,6 +89,7 @@ public class AdminProductService {
 
 		productRepository.delete(product);
 
+		// 지금은 하드 삭제 -> 소프트 삭제로 변경할 지 의논 필요(상품 상태 DELETE로 변경 여부)
 		log.info("[상품 삭제] 삭제된 상품 카테고리 : {}, 상품 이름 : {}, 삭제한 관리자 : {} ", product.getCategory().getName(), product.getName(), admin.getName());
 
 		return DeleteProductResponse.from(product);
