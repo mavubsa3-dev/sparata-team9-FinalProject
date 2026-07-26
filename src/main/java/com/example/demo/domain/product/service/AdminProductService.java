@@ -1,5 +1,10 @@
 package com.example.demo.domain.product.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,8 +16,10 @@ import com.example.demo.domain.product.dto.request.CreateProductRequest;
 import com.example.demo.domain.product.dto.request.UpdateProductRequest;
 import com.example.demo.domain.product.dto.response.CreateProductResponse;
 import com.example.demo.domain.product.dto.response.DeleteProductResponse;
+import com.example.demo.domain.product.dto.response.GetProductFromAdminResponse;
 import com.example.demo.domain.product.dto.response.UpdateProductResponse;
 import com.example.demo.domain.product.entity.Product;
+import com.example.demo.domain.product.entity.ProductStatus;
 import com.example.demo.domain.product.repository.ProductRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
@@ -52,6 +59,50 @@ public class AdminProductService {
 		log.info("[상품 생성] 생성된 상품 : {} , 카테고리 : {}, 생성한 관리자 : {} ", product.getName(), product.getCategory().getName(), admin.getName());
 
 		return CreateProductResponse.from(savedProduct);
+	}
+
+	@Transactional(readOnly = true)
+	public Page<GetProductFromAdminResponse> getProduct(
+		Long adminId, String category, String productName, Integer minPrice, Integer maxPrice, Integer stock, ProductStatus status, Pageable pageable){
+		User admin = userRepository.findById(adminId).orElseThrow(
+			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
+		);
+
+		Specification<Product> spec = Specification.where((root, query, cb) -> cb.isTrue(cb.literal(true)));
+
+		if (category != null && !category.isEmpty()){
+			spec = spec.and((root, query, cb) ->
+				cb.equal(root.join("category").get("name"), category));
+		}
+
+		if (productName != null && !productName.isEmpty()) {
+			spec = spec.and(((root, query, cb) ->
+				cb.like(root.get("name"), "%" + productName + "%")));
+		}
+
+		if (minPrice != null){
+			spec = spec.and((root, query, cb) ->
+				cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+		}
+
+		if (maxPrice != null){
+			spec = spec.and((root, query, cb) ->
+				cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+		}
+
+		if (stock != null){
+			spec = spec.and((root, query, cb) ->
+				cb.greaterThanOrEqualTo(root.get("stock"), stock));
+		}
+
+		if (status != null){
+			spec = spec.and((root, query, cb) ->
+				cb.equal(root.get("status"), status));
+		}
+
+
+		return productRepository.findAll(spec, pageable)
+			.map(GetProductFromAdminResponse::from);
 	}
 
 	@Transactional
