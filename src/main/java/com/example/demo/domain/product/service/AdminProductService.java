@@ -1,7 +1,5 @@
 package com.example.demo.domain.product.service;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -100,6 +98,7 @@ public class AdminProductService {
 				cb.equal(root.get("status"), status));
 		}
 
+		log.info("[상품 조회] 조회한 관리자 : {} ", admin.getName());
 
 		return productRepository.findAll(spec, pageable)
 			.map(GetProductFromAdminResponse::from);
