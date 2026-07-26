@@ -66,37 +66,7 @@ public class AdminProductService {
 			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
 		);
 
-		Specification<Product> spec = Specification.where((root, query, cb) -> cb.isTrue(cb.literal(true)));
-
-		if (category != null && !category.isEmpty()){
-			spec = spec.and((root, query, cb) ->
-				cb.equal(root.join("category").get("name"), category));
-		}
-
-		if (productName != null && !productName.isEmpty()) {
-			spec = spec.and(((root, query, cb) ->
-				cb.like(root.get("name"), "%" + productName + "%")));
-		}
-
-		if (minPrice != null){
-			spec = spec.and((root, query, cb) ->
-				cb.greaterThanOrEqualTo(root.get("price"), minPrice));
-		}
-
-		if (maxPrice != null){
-			spec = spec.and((root, query, cb) ->
-				cb.lessThanOrEqualTo(root.get("price"), maxPrice));
-		}
-
-		if (stock != null){
-			spec = spec.and((root, query, cb) ->
-				cb.greaterThanOrEqualTo(root.get("stock"), stock));
-		}
-
-		if (status != null){
-			spec = spec.and((root, query, cb) ->
-				cb.equal(root.get("status"), status));
-		}
+		Specification<Product> spec = buildSpec(category, productName, minPrice, maxPrice, stock, status);
 
 		log.info("[상품 조회] 조회한 관리자 : {} ", admin.getName());
 
@@ -152,5 +122,40 @@ public class AdminProductService {
 		if (request.price() != null) product.updatePrice(request.price());
 		if (request.stock() != null) product.updateStock(request.stock());
 		if (request.status() != null) product.updateStatus(request.status());
+	}
+
+	private Specification<Product> buildSpec(
+		String category, String productName,
+		Integer minPrice, Integer maxPrice,
+		Integer stock, ProductStatus status) {
+
+		Specification<Product> spec = Specification.where((root, query, cb) -> cb.isTrue(cb.literal(true)));
+
+		if (category != null && !category.isEmpty()) {
+			spec = spec.and((root, query, cb) ->
+				cb.equal(root.join("category").get("name"), category));
+		}
+		if (productName != null && !productName.isEmpty()) {
+			spec = spec.and((root, query, cb) ->
+				cb.like(root.get("name"), "%" + productName + "%"));
+		}
+		if (minPrice != null) {
+			spec = spec.and((root, query, cb) ->
+				cb.greaterThanOrEqualTo(root.get("price"), minPrice));
+		}
+		if (maxPrice != null) {
+			spec = spec.and((root, query, cb) ->
+				cb.lessThanOrEqualTo(root.get("price"), maxPrice));
+		}
+		if (stock != null) {
+			spec = spec.and((root, query, cb) ->
+				cb.greaterThanOrEqualTo(root.get("stock"), stock));
+		}
+		if (status != null) {
+			spec = spec.and((root, query, cb) ->
+				cb.equal(root.get("status"), status));
+		}
+
+		return spec;
 	}
 }
