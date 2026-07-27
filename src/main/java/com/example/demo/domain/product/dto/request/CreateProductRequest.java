@@ -15,7 +15,6 @@ public record CreateProductRequest(
 	@NotBlank(message = "상품 설명을 입력하세요")
 	String description,
 
-	@NotBlank(message = "상품 이미지를 등록하세요")
 	@URL(message = "올바른 URL 형식으로 입력해주세요")
 	String thumbnailUrl,
 

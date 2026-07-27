@@ -32,4 +32,6 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     @EntityGraph(attributePaths = {"category"})
     Page<Product> findAll(Specification<Product> spec, Pageable pageable);
+
+    Boolean existsByCategoryId(Long categoryId);
 }

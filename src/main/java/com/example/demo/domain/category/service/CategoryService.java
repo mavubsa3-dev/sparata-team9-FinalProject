@@ -15,6 +15,7 @@ import com.example.demo.domain.category.dto.response.GetCategoryResponse;
 import com.example.demo.domain.category.dto.response.UpdateCategoryResponse;
 import com.example.demo.domain.category.entity.Category;
 import com.example.demo.domain.category.repository.CategoryRepository;
+import com.example.demo.domain.product.repository.ProductRepository;
 import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 
@@ -28,6 +29,7 @@ public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
 	private final UserRepository userRepository;
+	private final ProductRepository productRepository;
 
 	@Transactional
 	public CreateCategoryResponse createCategory(Long adminId, CreateCategoryRequest request){
@@ -79,6 +81,11 @@ public class CategoryService {
 
 
 		categoryRepository.delete(category);
+
+		if (productRepository.existsByCategoryId(categoryId)){
+			throw new CustomException(ErrorCode.CATEGORY_HAS_PRODUCTS);
+		}
+
 		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
 
 		return DeleteCategoryResponse.from(category);
