@@ -80,11 +80,11 @@ public class CategoryService {
 		);
 
 
-		categoryRepository.delete(category);
-
 		if (productRepository.existsByCategoryId(categoryId)){
 			throw new CustomException(ErrorCode.CATEGORY_HAS_PRODUCTS);
 		}
+
+		categoryRepository.delete(category);
 
 		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
 

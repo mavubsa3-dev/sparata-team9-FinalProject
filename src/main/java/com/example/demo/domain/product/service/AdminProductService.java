@@ -107,7 +107,7 @@ public class AdminProductService {
 		Product product = productRepository.findByIdWithCategory(productId)
 			.orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
-		product.isHidden();
+		product.updateStatus(ProductStatus.HIDDEN);
 
 		log.info("[상품 삭제] 삭제된 상품 카테고리 : {}, 상품 이름 : {}, 삭제한 관리자 : {} ", product.getCategory().getName(), product.getName(), admin.getName());
 
