@@ -69,6 +69,14 @@ public class Product extends BaseTimeEntity {
                 && this.stock != null && this.stock > 0;
     }
 
+    public void updateStatus(ProductStatus status){
+        this.status = status;
+    }
+
+    public boolean isHidden() {
+        return this.status == ProductStatus.HIDDEN;
+    }
+
     public void updateCategory(Category category){
         this.category = category;
     }
@@ -96,11 +104,7 @@ public class Product extends BaseTimeEntity {
         this.stock = stock;
     }
 
-    public void updateStatus(ProductStatus status){
-        this.status = status;
-    }
-
-    public boolean isHidden() {
-        return this.status == ProductStatus.HIDDEN;
+    public void increaseStock(int quantity) {
+        this.stock += quantity;
     }
 }
