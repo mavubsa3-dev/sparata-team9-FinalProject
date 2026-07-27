@@ -107,4 +107,8 @@ public class Product extends BaseTimeEntity {
     public void increaseStock(int quantity) {
         this.stock += quantity;
     }
+
+    public void decreaseStock(int quantity) {
+        this.stock -= quantity;
+    }
 }
