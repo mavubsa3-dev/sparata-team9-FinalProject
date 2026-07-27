@@ -15,6 +15,7 @@ public enum ErrorCode {
 	INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "INSUFFICIENT_STOCK", "재고가 부족합니다."),
 	ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "ORDER_CANNOT_CANCEL", "결제 전 주문만 취소할 수 있습니다."),
 	ORDER_STOCK_SHORTAGE(HttpStatus.BAD_REQUEST, "ORDER_STOCK_SHORTAGE", "재고가 부족합니다."),
+	ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORDER_NOT_PAYABLE", "결제할 수 없는 주문 상태입니다."),
 
 	// 401 UNAUTHORIZED
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),
@@ -38,7 +39,8 @@ public enum ErrorCode {
 	// 409 CONFLICT
 	CATEGORY_HAS_PRODUCTS(HttpStatus.CONFLICT, "CATEGORY_HAS_PRODUCTS", "해당 카테고리에 속한 상품이 존재하여 삭제할 수 없습니다."),
 	DUPLICATE_CART_ITEM(HttpStatus.CONFLICT, "DUPLICATE_CART_ITEM", "이미 처리 중인 요청입니다. 다시 시도해주세요."),
-	EMAIL_DUPLICATE(HttpStatus.CONFLICT, "EMAIL_DUPLICATE", "이미 사용 중인 이메일입니다.");
+	EMAIL_DUPLICATE(HttpStatus.CONFLICT, "EMAIL_DUPLICATE", "이미 사용 중인 이메일입니다."),
+	PAYMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "PAYMENT_ALREADY_EXISTS", "이미 결제가 생성된 주문입니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;
