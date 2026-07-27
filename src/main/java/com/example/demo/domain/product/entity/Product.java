@@ -67,35 +67,4 @@ public class Product extends BaseTimeEntity {
     public boolean isHidden() {
         return this.status == ProductStatus.HIDDEN;
     }
-
-    public void updateCategory(Category category){
-        this.category = category;
-    }
-
-    public void updateName(String name){
-        this.name = name;
-    }
-
-    public void updateDescription(String description){
-        this.description = description;
-    }
-
-    public void updateThumbnail(String thumbnailUrl){
-        this.thumbnailUrl = thumbnailUrl;
-    }
-
-    public void updatePrice(Long price){
-        this.price = price;
-    }
-
-    public void updateStock(Integer stock){
-        if(stock < 0){
-            throw new CustomException(ErrorCode.INVALID_QUANTITY);
-        }
-        this.stock = stock;
-    }
-
-    public void updateStatus(ProductStatus status){
-        this.status = status;
-    }
 }
