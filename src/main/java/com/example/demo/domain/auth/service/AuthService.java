@@ -1,5 +1,7 @@
 package com.example.demo.domain.auth.service;
 
+import com.example.demo.domain.cart.entity.Cart;
+import com.example.demo.domain.cart.repository.CartRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +14,6 @@ import com.example.demo.domain.auth.dto.request.SignupRequest;
 import com.example.demo.domain.auth.dto.response.LoginResponse;
 import com.example.demo.domain.auth.dto.response.SignupResponse;
 import com.example.demo.domain.user.entity.User;
-import com.example.demo.domain.user.enums.UserRole;
 import com.example.demo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class AuthService {
 
 		String encodedPassword = passwordEncoder.encode(request.password());
 
-		User user = new User(request.email(), encodedPassword, request.name(), request.phoneNumber(), UserRole.USER);
+		User user = new User(request.email(), encodedPassword, request.name(), request.phoneNumber());
 
 		User savedUser = userRepository.save(user);
 		return SignupResponse.from(savedUser);
