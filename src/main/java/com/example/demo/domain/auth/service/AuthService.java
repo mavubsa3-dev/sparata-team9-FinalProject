@@ -1,5 +1,7 @@
 package com.example.demo.domain.auth.service;
 
+import com.example.demo.domain.cart.entity.Cart;
+import com.example.demo.domain.cart.repository.CartRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthService {
 
 	private final UserRepository userRepository;
+	private final CartRepository cartRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
 
@@ -42,15 +45,12 @@ public class AuthService {
 	@Transactional(readOnly = true)
 	public LoginResponse login(LoginRequest request){
 		User user = userRepository.findByEmail(request.email()).orElseThrow(
-			() -> new CustomException(ErrorCode.INVALID_CREDENTIALS)
+				() -> new CustomException(ErrorCode.INVALID_CREDENTIALS)
 		);
-
 		if (!passwordEncoder.matches(request.password(), user.getPassword())){
 			throw new CustomException(ErrorCode.INVALID_CREDENTIALS);
 		}
-
 		String token = jwtUtil.createToken(user.getId(), user.getEmail(), user.getRole().name());
-
 		return new LoginResponse(token);
 	}
 }
