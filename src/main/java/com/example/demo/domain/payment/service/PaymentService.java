@@ -3,11 +3,13 @@ package com.example.demo.domain.payment.service;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.order.entity.Order;
+import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
 import com.example.demo.domain.payment.dto.request.CreatePaymentRequest;
 import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
 import com.example.demo.domain.payment.entity.Payment;
+import com.example.demo.domain.payment.entity.PaymentStatus;
 import com.example.demo.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -74,5 +76,33 @@ public class PaymentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         return GetPaymentResponse.from(payment);
+    }
+
+    @Transactional
+    public void cancelPaymentIfExists(Long orderId) {
+        paymentRepository.findByOrderId(orderId)
+                .ifPresent(Payment::cancel);
+    }
+
+    @Transactional
+    public void cancelPayment(Long userId, Long paymentId) {
+        Payment payment = paymentRepository.findDetailById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
+        }
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new CustomException(ErrorCode.PAYMENT_CANNOT_CANCEL);
+        }
+
+        Order order = payment.getOrder();
+        for (OrderItem orderItem : order.getOrderItems()) {
+            orderItem.getProduct().increaseStock(orderItem.getQuantity());
+        }
+        order.cancel();
+
+        payment.cancel();
     }
 }

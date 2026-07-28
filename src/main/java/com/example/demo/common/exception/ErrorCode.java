@@ -16,6 +16,7 @@ public enum ErrorCode {
 	ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "ORDER_CANNOT_CANCEL", "결제 전 주문만 취소할 수 있습니다."),
 	ORDER_STOCK_SHORTAGE(HttpStatus.BAD_REQUEST, "ORDER_STOCK_SHORTAGE", "재고가 부족합니다."),
 	ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORDER_NOT_PAYABLE", "결제할 수 없는 주문 상태입니다."),
+	PAYMENT_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "PAYMENT_CANNOT_CANCEL", "이미 처리된 결제는 취소할 수 없습니다."),
 
 	// 401 UNAUTHORIZED
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),

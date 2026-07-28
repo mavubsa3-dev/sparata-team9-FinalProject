@@ -13,6 +13,7 @@ import com.example.demo.domain.order.dto.response.GetOrderDetailResponse;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
+import com.example.demo.domain.payment.service.PaymentService;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
+    private final PaymentService paymentService;
 
     @Transactional
     public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request) {
@@ -100,6 +102,7 @@ public class OrderService {
         }
 
         order.cancel();
+        paymentService.cancelPaymentIfExists(orderId);
     }
 
     private void validateOrderOwner(Order order, Long userId) {

@@ -48,4 +48,9 @@ public class Payment extends BaseTimeEntity {
         this.totalProductAmount = totalProductAmount;
         this.paymentAmount = paymentAmount;
     }
+
+    public void cancel() {
+        this.status = PaymentStatus.CANCELED;
+        this.canceledAt = LocalDateTime.now();
+    }
 }

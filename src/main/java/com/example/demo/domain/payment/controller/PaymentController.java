@@ -40,6 +40,12 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{paymentId}/cancel")
+    public ResponseEntity<Void> cancelPayment(@PathVariable Long paymentId) {
+        paymentService.cancelPayment(getCurrentUserId(), paymentId);
+        return ResponseEntity.noContent().build();
+    }
+
     private Long getCurrentUserId() {
         return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
