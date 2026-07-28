@@ -39,6 +39,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Debug OIDC values
+        run: |
+          echo "Repo: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Role ARN: ${{ vars.AWS_ROLE_ARN }}"
+          echo "Region: ${{ vars.AWS_REGION }}"  
+
       # aws 자격 증명 - OIDC
       - name: Configure AWS
         uses: aws-actions/configure-aws-credentials@v4
