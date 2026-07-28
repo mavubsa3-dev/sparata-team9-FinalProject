@@ -14,7 +14,6 @@ public enum ErrorCode {
 	PRODUCT_NOT_PURCHASABLE(HttpStatus.BAD_REQUEST, "PRODUCT_NOT_PURCHASABLE", "구매할 수 없는 상품입니다."),
 	INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "INSUFFICIENT_STOCK", "재고가 부족합니다."),
 	ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "ORDER_CANNOT_CANCEL", "결제 전 주문만 취소할 수 있습니다."),
-	ORDER_STOCK_SHORTAGE(HttpStatus.BAD_REQUEST, "ORDER_STOCK_SHORTAGE", "재고가 부족합니다."),
 	ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORDER_NOT_PAYABLE", "결제할 수 없는 주문 상태입니다."),
 	PAYMENT_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "PAYMENT_CANNOT_CANCEL", "이미 처리된 결제는 취소할 수 없습니다."),
 

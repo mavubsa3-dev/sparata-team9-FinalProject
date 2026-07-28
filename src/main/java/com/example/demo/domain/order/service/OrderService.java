@@ -145,7 +145,7 @@ public class OrderService {
 
     private void validateStock(Product product, Integer quantity) {
         if (product.getStock() == null || product.getStock() < quantity) {
-            throw new CustomException(ErrorCode.ORDER_STOCK_SHORTAGE);
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
         }
     }
 

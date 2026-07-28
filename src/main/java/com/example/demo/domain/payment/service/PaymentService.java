@@ -12,6 +12,7 @@ import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
 import com.example.demo.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,11 @@ public class PaymentService {
         }
 
         Payment payment = new Payment(order, order.getTotalProductAmount(), order.getTotalProductAmount());
-        paymentRepository.save(payment);
+        try {
+            paymentRepository.save(payment);
+        } catch (DataIntegrityViolationException e) {
+            throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
+        }
 
         return CreatePaymentResponse.from(payment);
     }
