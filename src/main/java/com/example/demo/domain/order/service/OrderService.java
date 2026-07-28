@@ -6,13 +6,14 @@ import com.example.demo.domain.address.entity.Address;
 import com.example.demo.domain.address.repository.AddressRepository;
 import com.example.demo.domain.cart.entity.CartItem;
 import com.example.demo.domain.cart.repository.CartItemRepository;
-import com.example.demo.domain.order.dto.CreateOrderRequest;
-import com.example.demo.domain.order.dto.CreateOrderResponse;
-import com.example.demo.domain.order.dto.GetOrderResponse;
-import com.example.demo.domain.order.dto.GetOrderDetailResponse;
+import com.example.demo.domain.order.dto.request.CreateOrderRequest;
+import com.example.demo.domain.order.dto.response.CreateOrderResponse;
+import com.example.demo.domain.order.dto.response.GetOrderResponse;
+import com.example.demo.domain.order.dto.response.GetOrderDetailResponse;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
+import com.example.demo.domain.payment.service.PaymentService;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CartItemRepository cartItemRepository;
     private final AddressRepository addressRepository;
+    private final PaymentService paymentService;
 
     @Transactional
     public CreateOrderResponse createOrder(Long userId, CreateOrderRequest request) {
@@ -100,6 +102,7 @@ public class OrderService {
         }
 
         order.cancel();
+        paymentService.cancelPaymentIfExists(orderId);
     }
 
     private void validateOrderOwner(Order order, Long userId) {
@@ -142,7 +145,7 @@ public class OrderService {
 
     private void validateStock(Product product, Integer quantity) {
         if (product.getStock() == null || product.getStock() < quantity) {
-            throw new CustomException(ErrorCode.ORDER_STOCK_SHORTAGE);
+            throw new CustomException(ErrorCode.INSUFFICIENT_STOCK);
         }
     }
 
