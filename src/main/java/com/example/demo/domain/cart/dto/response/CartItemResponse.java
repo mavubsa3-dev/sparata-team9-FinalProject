@@ -9,18 +9,24 @@ public record CartItemResponse(
         String thumbnailUrl,
         Long price,
         Integer quantity,
-        Long lineAmount
+        Long lineAmount,
+        boolean available
 ) {
     public static CartItemResponse from(CartItem cartItem) {
+        boolean available = !cartItem.getProduct().isHidden();
+        String productName = available ? cartItem.getProduct().getName() : "삭제된 상품입니다";
+
         long lineAmount = cartItem.getProduct().getPrice() * cartItem.getQuantity();
+
         return new CartItemResponse(
                 cartItem.getId(),
                 cartItem.getProduct().getId(),
-                cartItem.getProduct().getName(),
+                productName,
                 cartItem.getProduct().getThumbnailUrl(),
                 cartItem.getProduct().getPrice(),
                 cartItem.getQuantity(),
-                lineAmount
+                lineAmount,
+                available
         );
     }
 }
