@@ -1,79 +1,38 @@
-INSERT INTO categories (id, name, created_at, updated_at) VALUES (1, '상의', NOW(), NOW());
-INSERT INTO categories (id, name, created_at, updated_at) VALUES (2, '하의', NOW(), NOW());
-INSERT INTO categories (id, name, created_at, updated_at) VALUES (3, '신발', NOW(), NOW());
-INSERT INTO categories (id, name, created_at, updated_at) VALUES (4, '아우터', NOW(), NOW());
-INSERT INTO categories (id, name, created_at, updated_at) VALUES (5, '가방', NOW(), NOW());
+INSERT INTO users (id, created_at, updated_at, email, name, password, phone_number, role) VALUES
+                                                                                              (1, NOW(), NOW(), 'admin@test.com', '최고관리자', 'encrypted_pwd_123', '010-1111-1111', 'admin'),
+                                                                                              (2, NOW(), NOW(), 'user@test.com', '일반고객', 'encrypted_pwd_456', '010-2222-2222', 'user'),
+                                                                                              (3, NOW(), NOW(), 'test3@test.com', '김테스트', 'encrypted_pwd', '010-3333-3333', 'user'),
+                                                                                              (4, NOW(), NOW(), 'test4@test.com', '이테스트', 'encrypted_pwd', '010-4444-4444', 'user'),
+                                                                                              (5, NOW(), NOW(), 'test5@test.com', '박테스트', 'encrypted_pwd', '010-5555-5555', 'user'),
+                                                                                              (6, NOW(), NOW(), 'test6@test.com', '최테스트', 'encrypted_pwd', '010-6666-6666', 'user'),
+                                                                                              (7, NOW(), NOW(), 'test7@test.com', '정테스트', 'encrypted_pwd', '010-7777-7777', 'user');
 
--- 상품 추가 (기존 5개 + 15개 = 총 20개)
+-- 2. 카테고리 (categories) 총 7개 (모두 최고관리자가 생성)
+INSERT INTO categories (id, created_at, updated_at, name, admin_id) VALUES
+                                                                        (1, NOW(), NOW(), '전자기기', 1),
+                                                                        (2, NOW(), NOW(), '의류', 1),
+                                                                        (3, NOW(), NOW(), '식품', 1),
+                                                                        (4, NOW(), NOW(), '가전', 1),
+                                                                        (5, NOW(), NOW(), '도서', 1),
+                                                                        (6, NOW(), NOW(), '스포츠', 1),
+                                                                        (7, NOW(), NOW(), '뷰티', 1);
 
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '반팔 티셔츠', '시원한 여름용 반팔티입니다.', 'https://example.com/tshirt.jpg', 15000, 100, 'ON_SALE', NOW(), NOW());
+-- 3. 상품 (products) 총 8개 (다양한 카테고리 및 상태)
+INSERT INTO products (id, created_at, updated_at, category_id, name, description, thumbnail_url, price, stock, status) VALUES
+                                                                                                                           (1, NOW(), NOW(), 1, '아이폰 17 Pro', '최신형 스마트폰입니다.', 'url/iphone17.jpg', 1500000, 50, 'ON_SALE'),
+                                                                                                                           (2, NOW(), NOW(), 1, 'LG Gram 노트북', '가볍고 성능 좋은 노트북입니다.', 'url/gram.jpg', 2000000, 30, 'ON_SALE'),
+                                                                                                                           (3, NOW(), NOW(), 2, '검은색 반팔 티셔츠', '여름용 무지 티셔츠입니다.', 'url/tshirt.jpg', 15000, 100, 'ON_SALE'),
+                                                                                                                           (4, NOW(), NOW(), 3, '유기농 사과 1kg', '맛있는 사과', 'url/apple.jpg', 12000, 100, 'ON_SALE'),
+                                                                                                                           (5, NOW(), NOW(), 4, '로봇 청소기', '구형 모델 단종', 'url/robot.jpg', 350000, 0, 'HIDDEN'),
+                                                                                                                           (6, NOW(), NOW(), 5, '스프링 부트 교재', '베스트셀러', 'url/book.jpg', 32000, 0, 'SOLD_OUT'),
+                                                                                                                           (7, NOW(), NOW(), 6, '요가매트', '친환경 소재', 'url/yoga.jpg', 25000, 50, 'ON_SALE'),
+                                                                                                                           (8, NOW(), NOW(), 7, '수분 크림', '인기 화장품', 'url/cream.jpg', 18000, 200, 'ON_SALE');
 
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '긴팔 셔츠', '가을용 긴팔 셔츠입니다.', 'https://example.com/shirt.jpg', 29000, 50, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '청바지', '데일리로 입기 좋은 청바지입니다.', 'https://example.com/jeans.jpg', 45000, 30, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (3, '운동화', '가볍고 편한 운동화입니다.', 'https://example.com/shoes.jpg', 68000, 0, 'SOLD_OUT', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '단종된 바지', '더 이상 판매하지 않는 상품입니다.', 'https://example.com/old-pants.jpg', 20000, 0, 'HIDDEN', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '흰색 반팔티', '베이직한 흰색 반팔티입니다.', 'https://example.com/white-tshirt.jpg', 12000, 200, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '스트라이프 반팔티', '줄무늬 패턴의 반팔티입니다.', 'https://example.com/stripe-tshirt.jpg', 18000, 80, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '반팔 니트', '여름용 얇은 니트입니다.', 'https://example.com/knit.jpg', 35000, 45, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (1, '린넨 셔츠', '시원한 린넨 소재 셔츠입니다.', 'https://example.com/linen.jpg', 42000, 0, 'SOLD_OUT', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '슬랙스', '깔끔한 슬랙스입니다.', 'https://example.com/slacks.jpg', 55000, 60, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '반바지', '편안한 여름 반바지입니다.', 'https://example.com/shorts.jpg', 25000, 90, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '조거 팬츠', '활동적인 조거 팬츠입니다.', 'https://example.com/jogger.jpg', 38000, 5, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (2, '와이드 팬츠', '트렌디한 와이드 팬츠입니다.', 'https://example.com/wide.jpg', 48000, 0, 'SOLD_OUT', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (3, '슬리퍼', '편안한 여름 슬리퍼입니다.', 'https://example.com/slipper.jpg', 15000, 150, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (3, '샌들', '가벼운 여름 샌들입니다.', 'https://example.com/sandal.jpg', 32000, 70, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (3, '부츠', '가을 겨울 부츠입니다.', 'https://example.com/boots.jpg', 95000, 20, 'HIDDEN', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (4, '가디건', '얇은 봄 가디건입니다.', 'https://example.com/cardigan.jpg', 45000, 35, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (4, '자켓', '캐주얼 자켓입니다.', 'https://example.com/jacket.jpg', 89000, 25, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (4, '코트', '겨울 롱코트입니다.', 'https://example.com/coat.jpg', 150000, 10, 'HIDDEN', NOW(), NOW());
-
-INSERT INTO products (category_id, name, description, thumbnail_url, price, stock, status, created_at, updated_at)
-VALUES (5, '크로스백', '가벼운 크로스백입니다.', 'https://example.com/crossbag.jpg', 55000, 40, 'ON_SALE', NOW(), NOW());
-
-INSERT INTO users (id, email, password, name, phone_number, role, created_at, updated_at)
-VALUES (1, 'test@example.com', 'encodedpassword', '테스트유저', '010-1234-5678', 'USER', NOW(), NOW());
-
-INSERT INTO carts (id, user_id, created_at, updated_at)
-VALUES (1, 1, NOW(), NOW());
-
-INSERT INTO cart_items (cart_id, user_id, product_id, quantity, created_at, updated_at)
-VALUES (1, 1, 1, 2, NOW(), NOW());
-
-INSERT INTO cart_items (cart_id, user_id, product_id, quantity, created_at, updated_at)
-VALUES (1, 1, 3, 1, NOW(), NOW());
+-- 4. 배송지 (addresses) 총 6개 (유저 2~7번)
+INSERT INTO addresses (id, created_at, updated_at, user_id, alias, name, phone_number, zip_code, address1, address2) VALUES
+                                                                                                                         (1, NOW(), NOW(), 2, '우리집', '일반고객', '010-2222-2222', '12345', '서울시 강남구 테헤란로', '101동 202호'),
+                                                                                                                         (2, NOW(), NOW(), 3, '회사', '김테스트', '010-3333-3333', '06234', '서울시 강남구 역삼동', '위워크 3층'),
+                                                                                                                         (3, NOW(), NOW(), 4, '본가', '이테스트', '010-4444-4444', '48021', '부산시 해운대구 우동', '자이아파트 101동'),
+                                                                                                                         (4, NOW(), NOW(), 5, '우리집', '박테스트', '010-5555-5555', '13524', '경기도 성남시 분당구', '판교동 123-4'),
+                                                                                                                         (5, NOW(), NOW(), 6, '친구집', '친구이름', '010-9999-9999', '01234', '서울시 송파구 잠실동', '엘스아파트'),
+                                                                                                                         (6, NOW(), NOW(), 7, '기숙사', '정테스트', '010-7777-7777', '54321', '대전광역시 유성구 대학로', '학생생활관 1관');
