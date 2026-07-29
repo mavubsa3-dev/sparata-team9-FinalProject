@@ -12,11 +12,13 @@ import com.example.demo.domain.order.dto.response.GetOrderResponse;
 import com.example.demo.domain.order.dto.response.GetOrderDetailResponse;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
+import com.example.demo.domain.order.entity.OrderStatus;
 import com.example.demo.domain.order.repository.OrderRepository;
 import com.example.demo.domain.payment.service.PaymentService;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,6 +107,22 @@ public class OrderService {
         paymentService.cancelPaymentIfExists(orderId);
     }
 
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    @Transactional
+    public void cancelExpiredOrders() {
+        LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);
+        List<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
+                OrderStatus.PAYMENT_PENDING, expiredBefore
+        );
+
+        for (Order order : expiredOrders) {
+            for (OrderItem orderItem : order.getOrderItems()) {
+                orderItem.getProduct().increaseStock(orderItem.getQuantity());
+            }
+            order.cancel();
+        }
+    }
+
     private void validateOrderOwner(Order order, Long userId) {
         if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.ORDER_ACCESS_DENIED);
@@ -152,4 +170,6 @@ public class OrderService {
     private String generateOrderNumber() {
         return "ORD-" + LocalDateTime.now().toLocalDate() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+
+
 }
