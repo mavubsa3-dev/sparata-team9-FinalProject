@@ -5,6 +5,7 @@ import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.cart.dto.request.AddCartItemRequest;
 import com.example.demo.domain.cart.dto.request.UpdateCartItemRequest;
 import com.example.demo.domain.cart.dto.response.AddCartItemResponse;
+import com.example.demo.domain.cart.dto.response.GetCartItemCountResponse;
 import com.example.demo.domain.cart.dto.response.GetCartResponse;
 import com.example.demo.domain.cart.dto.response.UpdateCartItemResponse;
 import com.example.demo.domain.cart.entity.Cart;
@@ -35,6 +36,15 @@ public class CartService {
         List<CartItem> cartItems = cartItemRepository.findByCartIdWithProduct(cart.getId());
 
         return GetCartResponse.of(cart, cartItems);
+    }
+
+    public GetCartItemCountResponse getCartItemCount(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_NOT_FOUND));
+
+        long count = cartItemRepository.countByCartId(cart.getId());
+
+        return new GetCartItemCountResponse(count);
     }
 
     @Transactional
