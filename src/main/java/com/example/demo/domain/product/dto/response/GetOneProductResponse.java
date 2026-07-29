@@ -9,9 +9,7 @@ public record GetOneProductResponse(
         String thumbnailUrl,
         Long price,
         Integer stock,
-        String status,
-        Long categoryId,
-        String categoryName
+        String status
 ) {
     public static GetOneProductResponse from(Product product) {
         return new GetOneProductResponse(
@@ -21,9 +19,7 @@ public record GetOneProductResponse(
                 product.getThumbnailUrl(),
                 product.getPrice(),
                 product.getStock(),
-                product.getStatus().name(),
-                product.getCategory() != null ? product.getCategory().getId() : null,
-                product.getCategory() != null ? product.getCategory().getName() : null
+                product.getStatus().name()
         );
     }
 }
