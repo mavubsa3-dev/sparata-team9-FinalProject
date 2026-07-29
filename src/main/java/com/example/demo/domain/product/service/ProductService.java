@@ -27,7 +27,7 @@ public class ProductService {
     }
 
     public GetOneProductResponse getProduct(Long productId) {
-        Product product = productRepository.findByIdWithCategory(productId)
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         if (product.isHidden()) {

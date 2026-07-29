@@ -15,6 +15,7 @@ public record GetCartResponse(
                 .toList();
 
         long totalAmount = itemResponses.stream()
+                .filter(CartItemResponse::available)
                 .mapToLong(CartItemResponse::lineAmount)
                 .sum();
 
