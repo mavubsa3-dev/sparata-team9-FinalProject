@@ -107,19 +107,31 @@ public class OrderService {
         paymentService.cancelPaymentIfExists(orderId);
     }
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    @Scheduled(fixedDelay = 5000)
     @Transactional
     public void cancelExpiredOrders() {
-        LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);
+        LocalDateTime expiredBefore = LocalDateTime.now().minusSeconds(5);
         List<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
                 OrderStatus.PAYMENT_PENDING, expiredBefore
         );
+
+        System.out.println("자동 취소 대상 주문 수: " + expiredOrders.size()); // 임시 로그
 
         for (Order order : expiredOrders) {
             for (OrderItem orderItem : order.getOrderItems()) {
                 orderItem.getProduct().increaseStock(orderItem.getQuantity());
             }
             order.cancel();
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public void validatePayable(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.isPaymentPending()) {
+            throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
         }
     }
 
