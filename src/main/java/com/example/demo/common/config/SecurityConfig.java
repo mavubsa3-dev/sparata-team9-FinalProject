@@ -43,7 +43,10 @@ public class SecurityConfig {
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers(
 					"/api/auth/**",
-					"/api/products/**"
+					"/api/products/**",
+					"/api/categories"
+					"/actuator/health",
+					"/actuator/info"
 				).permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated()
