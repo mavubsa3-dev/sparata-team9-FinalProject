@@ -4,6 +4,7 @@ import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record CreatePaymentResponse(
         Long paymentId,
@@ -11,6 +12,7 @@ public record CreatePaymentResponse(
         PaymentStatus status,
         Long totalProductAmount,
         Long paymentAmount,
+        List<PaymentItemResponse> items,
         LocalDateTime createdAt
 ) {
 
@@ -21,6 +23,9 @@ public record CreatePaymentResponse(
                 payment.getStatus(),
                 payment.getTotalProductAmount(),
                 payment.getPaymentAmount(),
+                payment.getOrder().getOrderItems().stream()
+                        .map(PaymentItemResponse::from)
+                        .toList(),
                 payment.getCreatedAt()
         );
     }

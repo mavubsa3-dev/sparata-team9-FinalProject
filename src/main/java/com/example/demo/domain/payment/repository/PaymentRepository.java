@@ -18,6 +18,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             SELECT p FROM Payment p
             JOIN FETCH p.order o
             JOIN FETCH o.user
+            LEFT JOIN FETCH o.orderItems
             WHERE p.id = :paymentId
             """)
     Optional<Payment> findDetailById(@Param("paymentId") Long paymentId);
@@ -25,6 +26,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("""
             SELECT p FROM Payment p
             JOIN FETCH p.order o
+            LEFT JOIN FETCH o.orderItems            
             WHERE o.user.id = :userId
             ORDER BY p.createdAt DESC
             """)
@@ -33,6 +35,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("""
             SELECT p FROM Payment p
             JOIN FETCH p.order o
+            LEFT JOIN FETCH o.orderItems            
             ORDER BY p.createdAt DESC
             """)
     List<Payment> findAllOrderByCreatedAtDesc();
