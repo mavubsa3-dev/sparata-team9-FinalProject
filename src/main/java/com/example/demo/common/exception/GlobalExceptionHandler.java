@@ -32,7 +32,11 @@ public class GlobalExceptionHandler {
 
 		BindingResult bindingResult = e.getBindingResult();
 
-		String errorMessage = bindingResult.getFieldError().getDefaultMessage();
+		String errorMessage = "입력값이 올바르지 않습니다.";
+
+		if (bindingResult.getFieldError() != null) {
+			errorMessage = bindingResult.getFieldError().getDefaultMessage();
+		}
 
 		ErrorResponse errorResponse = new ErrorResponse(
 			"VALIDATION_FAILED",
