@@ -14,9 +14,9 @@ public record GetCartResponse(
                 .map(CartItemResponse::from)
                 .toList();
 
-        long totalAmount = itemResponses.stream()
-                .filter(CartItemResponse::available)
-                .mapToLong(CartItemResponse::lineAmount)
+        long totalAmount = cartItems.stream()
+                .filter(cartItem -> !cartItem.getProduct().isHidden())
+                .mapToLong(cartItem -> cartItem.getProduct().getPrice() * cartItem.getQuantity())
                 .sum();
 
         return new GetCartResponse(cart.getId(), itemResponses, totalAmount);

@@ -9,8 +9,7 @@ public record CartItemResponse(
         String thumbnailUrl,
         Long price,
         Integer quantity,
-        Long lineAmount,
-        boolean available
+        Long lineAmount
 ) {
     public static CartItemResponse from(CartItem cartItem) {
         boolean available = !cartItem.getProduct().isHidden();
@@ -25,8 +24,7 @@ public record CartItemResponse(
                 cartItem.getProduct().getThumbnailUrl(),
                 cartItem.getProduct().getPrice(),
                 cartItem.getQuantity(),
-                lineAmount,
-                available
+                lineAmount
         );
     }
 }
