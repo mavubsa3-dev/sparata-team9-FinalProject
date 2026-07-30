@@ -6,8 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
-import com.example.demo.domain.address.entity.Address;
-import com.example.demo.domain.address.repository.AddressRepository;
 import com.example.demo.domain.user.dto.request.UpdateUserinfoRequest;
 import com.example.demo.domain.user.dto.response.GetUserInfoResponse;
 import com.example.demo.domain.user.dto.response.UpdateUserResponse;
@@ -38,7 +36,6 @@ public class UserService {
 		);
 
 		// 회원 정보 업데이트
-		if (request.email() != null) user.updateEmail(request.email());
 		if (request.name() != null) user.updateName(request.name());
 		if (request.password() != null) user.updatePassword(passwordEncoder.encode(request.password()));
 		if (request.phoneNumber() != null) user.updatePhoneNumber(request.phoneNumber());

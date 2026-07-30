@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.domain.address.dto.request.CreateAddressRequest;
 import com.example.demo.domain.address.dto.request.UpdateAddressRequest;
 import com.example.demo.domain.address.dto.response.CreateAddressResponse;
+import com.example.demo.domain.address.dto.response.DeleteAddressResponse;
 import com.example.demo.domain.address.dto.response.GetAddressInfoResponse;
 import com.example.demo.domain.address.dto.response.UpdateAddressResponse;
 import com.example.demo.domain.address.service.AddressService;
@@ -45,5 +47,11 @@ public class AddressController {
 	public ResponseEntity<CreateAddressResponse> createAddress(@Valid @RequestBody CreateAddressRequest request, @AuthenticationPrincipal Long userId){
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(addressService.createAddress(request, userId));
+	}
+
+	@DeleteMapping("/{addressId}")
+	public ResponseEntity<DeleteAddressResponse> deleteAddress(@AuthenticationPrincipal Long userId, @PathVariable Long addressId){
+
+		return ResponseEntity.status(HttpStatus.OK).body(addressService.deleteAddress(userId, addressId));
 	}
 }
