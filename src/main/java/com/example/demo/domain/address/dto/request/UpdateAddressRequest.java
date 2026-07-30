@@ -13,6 +13,7 @@ public record UpdateAddressRequest(
 	String zipCode,
 
 	String basicAddress,
-	String detailAddress
+	String detailAddress,
+	boolean isDefault
 ) {
 }

@@ -38,7 +38,6 @@ public class UserService {
 		);
 
 		// 회원 정보 업데이트
-		if (request.email() != null) user.updateEmail(request.email());
 		if (request.name() != null) user.updateName(request.name());
 		if (request.password() != null) user.updatePassword(passwordEncoder.encode(request.password()));
 		if (request.phoneNumber() != null) user.updatePhoneNumber(request.phoneNumber());

@@ -8,7 +8,8 @@ public record UpdateAddressResponse(
 	String phoneNumber,
 	String zipCode,
 	String basicAddress,
-	String detailAddress
+	String detailAddress,
+	boolean isDefault
 ) {
 	public static UpdateAddressResponse from(Address address){
 		return new UpdateAddressResponse(
@@ -17,7 +18,8 @@ public record UpdateAddressResponse(
 			address.getPhoneNumber(),
 			address.getZipCode(),
 			address.getBasicAddress(),
-			address.getDetailAddress() == null ? "" : address.getDetailAddress()
+			address.getDetailAddress() == null ? "" : address.getDetailAddress(),
+			address.isDefault()
 		);
 	}
 }

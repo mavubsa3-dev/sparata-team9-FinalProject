@@ -5,14 +5,12 @@ import com.example.demo.domain.user.entity.User;
 
 public record GetUserInfoResponse(
 	String email,
-	String name,
-	String phoneNumber
+	String name
 ) {
 	public static GetUserInfoResponse from(User user){
 		return new GetUserInfoResponse(
 			user.getEmail(),
-			user.getName(),
-			user.getPhoneNumber()
+			user.getName()
 		);
 	}
 }

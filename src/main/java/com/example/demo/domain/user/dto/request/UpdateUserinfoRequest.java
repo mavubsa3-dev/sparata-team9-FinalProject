@@ -5,9 +5,6 @@ import jakarta.validation.constraints.Pattern;
 
 public record UpdateUserinfoRequest(
 
-	@Email(message = "이메일 형식이 올바르지 않습니다.")
-	String email,
-
 	String name,
 
 	@Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,15}$",
