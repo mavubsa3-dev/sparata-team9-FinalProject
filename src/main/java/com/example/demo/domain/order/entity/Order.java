@@ -60,7 +60,7 @@ public class Order extends BaseTimeEntity {
     public Order(User user, String orderNumber) {
         this.user = user;
         this.orderNumber = orderNumber;
-        this.status = OrderStatus.PAYMENT_PENDING;
+        this.status = OrderStatus.ORDERED;
         this.totalProductAmount = 0L;
     }
 
@@ -92,7 +92,7 @@ public class Order extends BaseTimeEntity {
         this.status = OrderStatus.COMPLETED;
     }
 
-    public boolean isPaymentPending() {
-        return this.status == OrderStatus.PAYMENT_PENDING;
+    public boolean isOrdered() {
+        return this.status == OrderStatus.ORDERED;
     }
 }

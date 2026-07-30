@@ -1,7 +1,7 @@
 package com.example.demo.domain.order.entity;
 
 public enum OrderStatus {
-    PAYMENT_PENDING, // 결제 대기
-    COMPLETED, // 결제 완료
-    CANCELED // 결제 전 취소
+    ORDERED,   // 주문 접수 (결제 대기 중)
+    COMPLETED, // 주문 처리 완료
+    CANCELED   // 주문 취소
 }
