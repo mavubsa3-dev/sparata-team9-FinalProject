@@ -6,8 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
-import com.example.demo.domain.address.entity.Address;
-import com.example.demo.domain.address.repository.AddressRepository;
 import com.example.demo.domain.user.dto.request.UpdateUserinfoRequest;
 import com.example.demo.domain.user.dto.response.GetUserInfoResponse;
 import com.example.demo.domain.user.dto.response.UpdateUserResponse;
