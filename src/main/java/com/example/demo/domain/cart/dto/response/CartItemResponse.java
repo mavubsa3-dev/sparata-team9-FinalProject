@@ -1,3 +1,4 @@
+// src/main/java/com/example/demo/domain/cart/dto/response/CartItemResponse.java
 package com.example.demo.domain.cart.dto.response;
 
 import com.example.demo.domain.cart.entity.CartItem;
@@ -9,22 +10,27 @@ public record CartItemResponse(
         String thumbnailUrl,
         Long price,
         Integer quantity,
-        Long lineAmount
+        Long lineAmount,
+        String status
 ) {
     public static CartItemResponse from(CartItem cartItem) {
-        boolean available = !cartItem.getProduct().isHidden();
-        String productName = available ? cartItem.getProduct().getName() : "삭제된 상품입니다";
+        String status = switch (cartItem.getProduct().getStatus()) {
+            case ON_SALE -> "판매중";
+            case SOLD_OUT -> "품절";
+            case HIDDEN -> "삭제됨";
+        };
 
         long lineAmount = cartItem.getProduct().getPrice() * cartItem.getQuantity();
 
         return new CartItemResponse(
                 cartItem.getId(),
                 cartItem.getProduct().getId(),
-                productName,
+                cartItem.getProduct().getName(),
                 cartItem.getProduct().getThumbnailUrl(),
                 cartItem.getProduct().getPrice(),
                 cartItem.getQuantity(),
-                lineAmount
+                lineAmount,
+                status
         );
     }
 }
