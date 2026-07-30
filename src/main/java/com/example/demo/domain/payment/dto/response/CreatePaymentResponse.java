@@ -12,6 +12,11 @@ public record CreatePaymentResponse(
         PaymentStatus status,
         Long totalProductAmount,
         Long paymentAmount,
+        String recipientName,
+        String recipientPhone,
+        String zipCode,
+        String address1,
+        String address2,
         List<PaymentItemResponse> items,
         LocalDateTime createdAt
 ) {
@@ -23,6 +28,11 @@ public record CreatePaymentResponse(
                 payment.getStatus(),
                 payment.getTotalProductAmount(),
                 payment.getPaymentAmount(),
+                payment.getOrder().getRecipientName(),
+                payment.getOrder().getRecipientPhone(),
+                payment.getOrder().getZipCode(),
+                payment.getOrder().getAddress1(),
+                payment.getOrder().getAddress2(),
                 payment.getOrder().getOrderItems().stream()
                         .map(PaymentItemResponse::from)
                         .toList(),

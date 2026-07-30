@@ -1,6 +1,7 @@
 package com.example.demo.domain.order.controller;
 
 import com.example.demo.domain.order.dto.request.CreateOrderRequest;
+import com.example.demo.domain.order.dto.request.SelectOrderAddressRequest;
 import com.example.demo.domain.order.dto.response.CreateOrderResponse;
 import com.example.demo.domain.order.dto.response.GetOrderDetailResponse;
 import com.example.demo.domain.order.dto.response.GetOrderResponse;
@@ -44,6 +45,15 @@ public class OrderController {
     @PatchMapping("/{orderId}/cancel")
     public ResponseEntity<Void> cancelOrder(@PathVariable Long orderId) {
         orderService.cancelOrder(getCurrentUserId(), orderId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{orderId}/address")
+    public ResponseEntity<Void> selectOrderAddress(
+            @PathVariable Long orderId,
+            @Valid @RequestBody SelectOrderAddressRequest request
+    ) {
+        orderService.assignOrderAddress(getCurrentUserId(), orderId, request.addressId());
         return ResponseEntity.noContent().build();
     }
 
