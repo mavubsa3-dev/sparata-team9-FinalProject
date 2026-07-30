@@ -49,6 +49,9 @@ public class Address extends BaseTimeEntity {
 	@Column(name = "address2", length = 200)
 	private String detailAddress;
 
+	@Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
+	private boolean isDefault;
+
 	@Builder
 	public Address(User user, String alias, String name, String phoneNumber, String zipCode, String basicAddress, String detailAddress){
 		this.user = user;
@@ -58,6 +61,7 @@ public class Address extends BaseTimeEntity {
 		this.zipCode = zipCode;
 		this.basicAddress = basicAddress;
 		this.detailAddress = detailAddress;
+		this.isDefault = false;
 	}
 
 	// 주문 할 때 주문자와 배송 받는 사람이 다를 경우 사용
@@ -83,6 +87,16 @@ public class Address extends BaseTimeEntity {
 
 	public void updateDetailAddress(String detailAddress){
 		this.detailAddress = detailAddress;
+	}
+
+	// 기본 배송지로 설정
+	public void setDefault() {
+		this.isDefault = true;
+	}
+
+	// 기본 배송지 해제
+	public void unsetDefault() {
+		this.isDefault = false;
 	}
 
 }

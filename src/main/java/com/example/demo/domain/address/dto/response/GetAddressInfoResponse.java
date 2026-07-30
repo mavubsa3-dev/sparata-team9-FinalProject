@@ -3,21 +3,25 @@ package com.example.demo.domain.address.dto.response;
 import com.example.demo.domain.address.entity.Address;
 
 public record GetAddressInfoResponse(
+	Long id,
 	String alias,
 	String name,
 	String phoneNumber,
 	String zipCode,
 	String basicAddress,
-	String detailAddress
+	String detailAddress,
+	boolean isDefault
 ) {
 	public static GetAddressInfoResponse from(Address address){
 		return new GetAddressInfoResponse(
+			address.getId(),
 			address.getAlias(),
 			address.getName(),
 			address.getPhoneNumber(),
 			address.getZipCode(),
 			address.getBasicAddress(),
-			address.getDetailAddress() == null ? "" : address.getDetailAddress()
+			address.getDetailAddress() == null ? "" : address.getDetailAddress(),
+			address.isDefault()
 		);
 	}
 }

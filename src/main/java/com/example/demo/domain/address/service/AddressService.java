@@ -10,6 +10,7 @@ import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.address.dto.request.CreateAddressRequest;
 import com.example.demo.domain.address.dto.request.UpdateAddressRequest;
 import com.example.demo.domain.address.dto.response.CreateAddressResponse;
+import com.example.demo.domain.address.dto.response.DeleteAddressResponse;
 import com.example.demo.domain.address.dto.response.GetAddressInfoResponse;
 import com.example.demo.domain.address.dto.response.UpdateAddressResponse;
 import com.example.demo.domain.address.entity.Address;
@@ -18,9 +19,11 @@ import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AddressService {
 
 	private final AddressRepository addressRepository;
@@ -46,6 +49,16 @@ public class AddressService {
 		if (request.zipCode() != null) address.updateZipCode(request.zipCode());
 		if (request.basicAddress() != null) address.updateBasicAddress(request.basicAddress());
 		if (request.detailAddress() != null)address.updateDetailAddress(request.detailAddress());
+		if (request.isDefault()){
+			addressRepository.findByUserIdAndIsDefaultTrue(userId).ifPresent(
+				existing -> {
+					if (!existing.getId().equals(addressId)){
+						existing.unsetDefault();
+					}
+				}
+			);
+			address.setDefault();
+		}
 
 		return UpdateAddressResponse.from(address);
 	}
@@ -65,8 +78,24 @@ public class AddressService {
 			request.basicAddress(),
 			request.detailAddress() == null ? "" : request.detailAddress()
 		);
-
 		Address savedAddress = addressRepository.save(address);
 		return CreateAddressResponse.from(savedAddress);
+	}
+
+	@Transactional
+	public DeleteAddressResponse deleteAddress(Long userId, Long addressId){
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.USER_NOT_FOUND)
+		);
+
+		Address address = addressRepository.findById(addressId).orElseThrow(
+			() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND)
+		);
+
+		addressRepository.delete(address);
+
+		log.info("[주소 삭제] 사용자 : {}, 삭제한 주소 ID : {} ", user.getName(), address.getId());
+
+		return DeleteAddressResponse.from(address);
 	}
 }
