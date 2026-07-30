@@ -5,7 +5,9 @@ import jakarta.validation.constraints.NotNull;
 public record CreatePaymentRequest(
 
         @NotNull
-        Long orderId
+        Long orderId,
 
+        @NotNull
+        Long addressId
 ) {
 }

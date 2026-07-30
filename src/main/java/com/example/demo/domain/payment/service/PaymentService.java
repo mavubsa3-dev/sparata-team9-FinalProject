@@ -2,6 +2,8 @@ package com.example.demo.domain.payment.service;
 
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.domain.address.entity.Address;
+import com.example.demo.domain.address.repository.AddressRepository;
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderItem;
 import com.example.demo.domain.order.repository.OrderRepository;
@@ -25,6 +27,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final AddressRepository addressRepository;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -38,6 +41,19 @@ public class PaymentService {
         if (!order.isPaymentPending()) {
             throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
         }
+
+        Address address = addressRepository.findById(request.addressId())
+                .orElseThrow(() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND));
+        if (!address.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.ADDRESS_ACCESS_DENIED);
+        }
+        order.assignAddress(
+                address.getName(),
+                address.getPhoneNumber(),
+                address.getZipCode(),
+                address.getBasicAddress(),
+                address.getDetailAddress()
+        );
 
         if (paymentRepository.existsByOrderId(order.getId())) {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
