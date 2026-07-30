@@ -6,10 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public record CreateOrderRequest(
-        @NotEmpty List<Long> cartItemIds,
-        @NotNull Long addressId
+        @NotEmpty List<Long> cartItemIds
 ) {
     public static CreateOrderRequest of(List<Long> cartItemIds, Long addressId) {
-        return new CreateOrderRequest(cartItemIds, addressId);
+        return new CreateOrderRequest(cartItemIds);
     }
 }

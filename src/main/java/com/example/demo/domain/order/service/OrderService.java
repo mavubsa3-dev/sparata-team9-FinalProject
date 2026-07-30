@@ -41,18 +41,9 @@ public class OrderService {
         validateCartItemsExist(cartItems, request.cartItemIds());
         validateCartItemsOwner(cartItems, userId);
 
-        Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND));
-        validateAddressOwner(address, userId);
-
         Order order = new Order(
                 cartItems.get(0).getUser(),
-                generateOrderNumber(),
-                address.getName(),
-                address.getPhoneNumber(),
-                address.getZipCode(),
-                address.getBasicAddress(),
-                address.getDetailAddress()
+                generateOrderNumber()
         );
 
         for (CartItem cartItem : cartItems) {
@@ -105,6 +96,29 @@ public class OrderService {
 
         order.cancel();
         paymentService.cancelPaymentIfExists(orderId);
+    }
+
+    @Transactional
+    public void assignOrderAddress(Long userId, Long orderId, Long addressId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+        validateOrderOwner(order, userId);
+
+        if (!order.isPaymentPending()) {
+            throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
+        }
+
+        Address address = addressRepository.findById(addressId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND));
+        validateAddressOwner(address, userId);
+
+        order.assignAddress(
+                address.getName(),
+                address.getPhoneNumber(),
+                address.getZipCode(),
+                address.getBasicAddress(),
+                address.getDetailAddress()
+        );
     }
 
     @Scheduled(fixedDelay = 5 * 60 * 1000)

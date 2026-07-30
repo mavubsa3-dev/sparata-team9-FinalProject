@@ -57,19 +57,20 @@ public class Order extends BaseTimeEntity {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
 
-    public Order(
-            User user,
-            String orderNumber,
+    public Order(User user, String orderNumber) {
+        this.user = user;
+        this.orderNumber = orderNumber;
+        this.status = OrderStatus.PAYMENT_PENDING;
+        this.totalProductAmount = 0L;
+    }
+
+    public void assignAddress(
             String recipientName,
             String recipientPhone,
             String zipCode,
             String address1,
             String address2
     ) {
-        this.user = user;
-        this.orderNumber = orderNumber;
-        this.status = OrderStatus.PAYMENT_PENDING;
-        this.totalProductAmount = 0L;
         this.recipientName = recipientName;
         this.recipientPhone = recipientPhone;
         this.zipCode = zipCode;
