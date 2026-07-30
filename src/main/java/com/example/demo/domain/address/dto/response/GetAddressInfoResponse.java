@@ -8,7 +8,8 @@ public record GetAddressInfoResponse(
 	String phoneNumber,
 	String zipCode,
 	String basicAddress,
-	String detailAddress
+	String detailAddress,
+	boolean isDefault
 ) {
 	public static GetAddressInfoResponse from(Address address){
 		return new GetAddressInfoResponse(
@@ -17,7 +18,8 @@ public record GetAddressInfoResponse(
 			address.getPhoneNumber(),
 			address.getZipCode(),
 			address.getBasicAddress(),
-			address.getDetailAddress() == null ? "" : address.getDetailAddress()
+			address.getDetailAddress() == null ? "" : address.getDetailAddress(),
+			address.isDefault()
 		);
 	}
 }
