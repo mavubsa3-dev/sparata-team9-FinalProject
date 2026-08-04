@@ -195,6 +195,4 @@ public class OrderService {
     private String generateOrderNumber() {
         return "ORD-" + LocalDateTime.now().toLocalDate() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
-
-
 }
