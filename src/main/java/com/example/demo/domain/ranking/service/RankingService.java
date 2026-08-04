@@ -1,11 +1,13 @@
 package com.example.demo.domain.ranking.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +19,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RankingService {
 
-	private final RedisTemplate<String, String> redisTemplate;
+	private final StringRedisTemplate stringRedisTemplate;
 	private static final String PRODUCT_RANKING_KEY = "product:ranking:";
 
-	public void increaseScore(Long productId){
+	public void increaseScore(String productInfo, int quantity){
 
 		LocalDate currentDate = LocalDate.now();
 
 		String key = PRODUCT_RANKING_KEY + currentDate;
 
-		redisTemplate.opsForZSet()
-			.incrementScore(key, String.valueOf(productId), 1);
+		stringRedisTemplate.opsForZSet()
+			.incrementScore(key, productInfo, quantity);
+
+		stringRedisTemplate.expire(key, Duration.ofDays(8));
 	}
 
 	// 상위 N개 조회
@@ -37,7 +41,11 @@ public class RankingService {
 
 		String key = PRODUCT_RANKING_KEY + currentDate;
 
-		Set<ZSetOperations.TypedTuple<String>> result = redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, count - 1);
+		Set<ZSetOperations.TypedTuple<String>> result = stringRedisTemplate.opsForZSet().reverseRangeWithScores(key, 0, count - 1);
+
+		if(result == null){
+			return Collections.emptyList();
+		}
 
 		return result.stream()
 			.filter(tuple -> tuple.getValue() != null && tuple.getScore() != null)
@@ -63,11 +71,13 @@ public class RankingService {
 			PRODUCT_RANKING_KEY + currentDate.minusDays(6)
 		);
 
-		String dKey = "product:ranking:last7days:";
+		String dKey = "product:ranking:last7days:" +  currentDate;
 
-		redisTemplate.opsForZSet().unionAndStore(keys.get(0), keys.subList(1, keys.size()), dKey);
+		stringRedisTemplate.opsForZSet().unionAndStore(keys.get(0), keys.subList(1, keys.size()), dKey);
 
-		Set<ZSetOperations.TypedTuple<String>> result = redisTemplate.opsForZSet().reverseRangeWithScores(dKey, 0, count-1);
+		stringRedisTemplate.expire(dKey, Duration.ofDays(1));
+
+		Set<ZSetOperations.TypedTuple<String>> result = stringRedisTemplate.opsForZSet().reverseRangeWithScores(dKey, 0, count-1);
 
 		if(result == null){
 			return Collections.emptyList();
