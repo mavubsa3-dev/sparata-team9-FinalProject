@@ -25,4 +25,9 @@ public class RankingController {
 	public ResponseEntity<List<GetProductRankingResponse>> getProductRanking(@RequestParam(defaultValue = "10") int count ){
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.findProductTopNInToday(count));
 	}
+
+	@GetMapping("/week")
+	public ResponseEntity<List<GetProductRankingResponse>> getProductRankingIn7Days(@RequestParam(defaultValue = "10") int count ){
+		return ResponseEntity.status(HttpStatus.OK).body(rankingService.findProductTopNInLast7Days(count));
+	}
 }
