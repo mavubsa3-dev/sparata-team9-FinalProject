@@ -1,6 +1,5 @@
 package com.example.demo.domain.payment.service;
 
-import com.example.demo.common.entity.kafka.event.PaymentCompletedEvent;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.address.entity.Address;

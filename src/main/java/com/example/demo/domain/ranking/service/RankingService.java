@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RankingService {
 
+	// 저장 데이터 단순 문자열 -> StringRedisTemplate 사용
 	private final StringRedisTemplate stringRedisTemplate;
 	private static final String PRODUCT_RANKING_KEY = "product:ranking:";
 
