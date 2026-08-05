@@ -41,4 +41,22 @@ public class KafkaProduceConfig {
 		// kakfa 템플릿을 사용하는 팩토리를 넣음
 		return new KafkaTemplate<>(eventProducerFactory());
 	}
+
+	@Bean
+	public ProducerFactory<String, String> errorProducerFactory(){
+
+		Map<String, Object> prorps = new HashMap<>();
+
+		prorps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootStrapServers);
+
+		prorps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+		prorps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
+
+		return new DefaultKafkaProducerFactory<>(prorps);
+	}
+
+	@Bean
+	public KafkaTemplate<String, String> KafkaErrorEventTemplate(){
+		return new KafkaTemplate<>(errorProducerFactory());
+	}
 }

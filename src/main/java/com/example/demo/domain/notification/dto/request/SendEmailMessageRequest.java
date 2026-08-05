@@ -1,5 +1,6 @@
 package com.example.demo.domain.notification.dto.request;
 
+
 public record SendEmailMessageRequest(
 
 	// 받는 사람

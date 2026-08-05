@@ -1,5 +1,6 @@
 package com.example.demo.domain.address.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 public record UpdateAddressRequest(
@@ -14,6 +15,8 @@ public record UpdateAddressRequest(
 
 	String basicAddress,
 	String detailAddress,
+
+	@NotNull(message = "기본 주소지 여부를 골라주세요(true / false)")
 	boolean isDefault
 ) {
 }

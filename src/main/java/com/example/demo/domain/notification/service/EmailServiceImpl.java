@@ -34,7 +34,7 @@ public class EmailServiceImpl implements EmailService{
 			log.info("[이메일 전송] : {} ", sendEmailMessageRequest.to());
 
 		} catch (MessagingException e) {
-			log.error("[이메일 전송 실패] ", e);
+			throw new RuntimeException("이메일 전송 중 오류 발생", e);
 		}
 	}
 }
