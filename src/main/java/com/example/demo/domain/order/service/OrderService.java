@@ -104,7 +104,7 @@ public class OrderService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
         validateOrderOwner(order, userId);
 
-        if (!order.isPaymentPending()) {
+        if (!order.isOrdered()) {
             throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
         }
 
@@ -126,7 +126,7 @@ public class OrderService {
     public void cancelExpiredOrders() {
         LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);
         List<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
-                OrderStatus.PAYMENT_PENDING, expiredBefore
+                OrderStatus.ORDERED, expiredBefore
         );
 
 
@@ -143,7 +143,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        if (!order.isPaymentPending()) {
+        if (!order.isOrdered()) {
             throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
         }
     }
@@ -155,7 +155,7 @@ public class OrderService {
     }
 
     private void validateCancelable(Order order) {
-        if (!order.isPaymentPending()) {
+        if (!order.isOrdered()) {
             throw new CustomException(ErrorCode.ORDER_CANNOT_CANCEL);
         }
     }
