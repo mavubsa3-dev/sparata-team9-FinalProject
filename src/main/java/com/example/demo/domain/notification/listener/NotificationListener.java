@@ -1,15 +1,11 @@
 package com.example.demo.domain.notification.listener;
 
 import static com.example.demo.common.config.kafka.topic.KafkaTopic.*;
-
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-
 import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 import com.example.demo.domain.notification.service.NotificationService;
-
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
