@@ -13,12 +13,13 @@ import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
 import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
 import com.example.demo.domain.payment.repository.PaymentRepository;
+import com.example.demo.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+
 
 @RequiredArgsConstructor
 @Service
@@ -28,6 +29,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
+    private final RankingService rankingService;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -60,11 +62,17 @@ public class PaymentService {
         }
 
         Payment payment = new Payment(order, order.getTotalProductAmount(), order.getTotalProductAmount());
+
         try {
             paymentRepository.save(payment);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
+
+        order.getOrderItems()
+            .forEach(item ->
+                rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
+                    item.getQuantity()));
 
         return CreatePaymentResponse.from(payment);
     }
