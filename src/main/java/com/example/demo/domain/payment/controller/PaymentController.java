@@ -1,5 +1,6 @@
 package com.example.demo.domain.payment.controller;
 
+import com.example.demo.domain.payment.dto.request.ConfirmPaymentRequest;
 import com.example.demo.domain.payment.dto.request.CreatePaymentRequest;
 import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
@@ -26,6 +27,15 @@ public class PaymentController {
     ) {
         CreatePaymentResponse response = paymentService.createPayment(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PatchMapping("/{paymentId}/confirm")
+    public ResponseEntity<Void> confirmPayment(
+            @PathVariable Long paymentId,
+            @Valid @RequestBody ConfirmPaymentRequest request
+    ) {
+        paymentService.confirmPayment(getCurrentUserId(), paymentId, request.portonePaymentId());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping

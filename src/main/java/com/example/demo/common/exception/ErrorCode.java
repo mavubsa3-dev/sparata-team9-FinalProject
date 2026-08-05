@@ -16,6 +16,8 @@ public enum ErrorCode {
 	ORDER_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "ORDER_CANNOT_CANCEL", "결제 전 주문만 취소할 수 있습니다."),
 	ORDER_NOT_PAYABLE(HttpStatus.BAD_REQUEST, "ORDER_NOT_PAYABLE", "결제할 수 없는 주문 상태입니다."),
 	PAYMENT_CANNOT_CANCEL(HttpStatus.BAD_REQUEST, "PAYMENT_CANNOT_CANCEL", "이미 처리된 결제는 취소할 수 없습니다."),
+	PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "PAYMENT_AMOUNT_MISMATCH", "결제 승인 금액이 일치하지 않습니다."),
+	PAYMENT_NOT_APPROVABLE(HttpStatus.BAD_REQUEST, "PAYMENT_NOT_APPROVABLE", "승인할 수 없는 결제 상태입니다."),
 
 	// 401 UNAUTHORIZED
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),

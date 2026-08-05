@@ -13,11 +13,15 @@ import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
 import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
 import com.example.demo.domain.payment.repository.PaymentRepository;
+import com.example.demo.domain.portone.client.PortOneClient;
+import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
 import com.example.demo.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -30,6 +34,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final RankingService rankingService;
+    private final PortOneClient portOneClient;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -70,9 +75,9 @@ public class PaymentService {
         }
 
         order.getOrderItems()
-            .forEach(item ->
-                rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
-                    item.getQuantity()));
+                .forEach(item ->
+                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
+                                item.getQuantity()));
 
         return CreatePaymentResponse.from(payment);
     }
@@ -133,5 +138,28 @@ public class PaymentService {
         order.cancel();
 
         payment.cancel();
+    }
+
+    @Transactional
+    public void confirmPayment(Long userId, Long paymentId, String portonePaymentId) {
+        Payment payment = paymentRepository.findDetailById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
+        }
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new CustomException(ErrorCode.PAYMENT_NOT_APPROVABLE);
+        }
+
+        PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
+
+        if (!payment.getPaymentAmount().equals(portOneResponse.amount().total())) {
+            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        payment.approve(portOneResponse.id(), LocalDateTime.now());
+        payment.getOrder().complete();
     }
 }
