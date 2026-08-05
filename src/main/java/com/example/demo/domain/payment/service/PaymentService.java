@@ -38,7 +38,7 @@ public class PaymentService {
             throw new CustomException(ErrorCode.ORDER_ACCESS_DENIED);
         }
 
-        if (!order.isPaymentPending()) {
+        if (!order.isOrdered()) {
             throw new CustomException(ErrorCode.ORDER_NOT_PAYABLE);
         }
 
