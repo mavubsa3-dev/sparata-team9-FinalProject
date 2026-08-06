@@ -51,7 +51,6 @@ public class CategoryService {
 	@Transactional(readOnly = true)
 	@Cacheable(value = "categories")
 	public List<GetCategoryResponse> getCategory(){
-	log.info("DB에서 카테고리 조회");
 		return categoryRepository.findAll().stream()
 				.map(GetCategoryResponse::from)
 				.toList();
