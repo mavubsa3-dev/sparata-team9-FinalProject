@@ -1,5 +1,6 @@
 package com.example.demo.domain.payment.service;
 
+import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.address.entity.Address;
@@ -12,14 +13,19 @@ import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
 import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
+import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.payment.repository.PaymentRepository;
 import com.example.demo.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,6 +36,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final RankingService rankingService;
+    private final PaymentProducer paymentProducer;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -68,6 +75,15 @@ public class PaymentService {
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
+
+        Map<String, Integer> orderProducts = order.getOrderItems().stream()
+                .collect(Collectors.toMap(
+                    orderItem -> orderItem.getProduct().getName(),
+					OrderItem::getQuantity,
+                    Integer::sum
+                ));
+
+        sendHistory(payment, orderProducts, payment.getPaymentAmount());
 
         order.getOrderItems()
             .forEach(item ->
@@ -133,5 +149,21 @@ public class PaymentService {
         order.cancel();
 
         payment.cancel();
+    }
+
+    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount){
+        String paidAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
+            .paymentId(payment.getId())
+            .userId(payment.getOrder().getUser().getId())
+            .userEmail(payment.getOrder().getUser().getEmail())
+            .orderNumber(payment.getOrder().getOrderNumber())
+            .totalAmount(totalAmount)
+            .products(orderProducts)
+            .paidAt(paidAt)
+            .build();
+
+        paymentProducer.send(event);
     }
 }
