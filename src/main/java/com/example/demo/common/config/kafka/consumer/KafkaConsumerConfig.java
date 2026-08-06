@@ -59,38 +59,12 @@ public class KafkaConsumerConfig {
 	}
 
 	@Bean
-	public ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> paymentCompletedKafkaListenerContainerFactory(){
+	public ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> paymentCompletedKafkaListenerContainerFactory(
+		CommonErrorHandler KafkaErrorHandler
+	){
 		ConcurrentKafkaListenerContainerFactory<String, PaymentCompletedEvent> factory = new ConcurrentKafkaListenerContainerFactory<>();
 		factory.setConsumerFactory(paymentHistoryConsumerFactory());
 
-		return factory;
-	}
-
-	@Bean
-	public ConsumerFactory<String ,String> errorConsumerFactory(){
-
-		Map<String, Object> props = new HashMap<>();
-
-		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootStrapServers);
-		props.put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-error");
-
-		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-
-		props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-		return new DefaultKafkaConsumerFactory<>(props);
-	}
-
-	@Bean
-	public ConcurrentKafkaListenerContainerFactory<String ,String> errorKafkaListenerContainerFactory(
-		CommonErrorHandler KafkaErrorHandler
-	){
-
-		ConcurrentKafkaListenerContainerFactory<String ,String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-		factory.setConsumerFactory(errorConsumerFactory());
-
-		// 에러 핸들러 등록
 		factory.setCommonErrorHandler(KafkaErrorHandler);
 
 		return factory;
