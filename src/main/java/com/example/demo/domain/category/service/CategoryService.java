@@ -2,6 +2,8 @@ package com.example.demo.domain.category.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +34,10 @@ public class CategoryService {
 	private final ProductRepository productRepository;
 
 	@Transactional
+	@CacheEvict(value = "categories", allEntries = true)
 	public CreateCategoryResponse createCategory(Long adminId, CreateCategoryRequest request){
 		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
+				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
 		);
 
 		Category category = new Category(request.name(), admin);
@@ -46,20 +49,23 @@ public class CategoryService {
 	}
 
 	@Transactional(readOnly = true)
+	@Cacheable(value = "categories")
 	public List<GetCategoryResponse> getCategory(){
+	log.info("DB에서 카테고리 조회");
 		return categoryRepository.findAll().stream()
-			.map(GetCategoryResponse::from)
-			.toList();
+				.map(GetCategoryResponse::from)
+				.toList();
 	}
 
 	@Transactional
+	@CacheEvict(value = "categories", allEntries = true)
 	public UpdateCategoryResponse updateCategory(Long categoryId, UpdateCategoryRequest request, Long adminId){
 		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
+				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
 		);
 
 		Category category = categoryRepository.findById(categoryId).orElseThrow(
-			() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
+				() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
 		);
 
 		category.updateName(request.name(), admin);
@@ -69,14 +75,15 @@ public class CategoryService {
 	}
 
 	@Transactional
+	@CacheEvict(value = "categories", allEntries = true)
 	public DeleteCategoryResponse deleteCategory(Long categoryId, Long adminId) {
 
 		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
+				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
 		);
 
 		Category category = categoryRepository.findById(categoryId).orElseThrow(
-			() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
+				() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
 		);
 
 
