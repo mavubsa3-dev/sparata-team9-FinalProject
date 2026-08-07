@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @RequiredArgsConstructor
@@ -74,10 +76,10 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
 
-        order.getOrderItems()
-                .forEach(item ->
-                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
-                                item.getQuantity()));
+//        order.getOrderItems()
+//                .forEach(item ->
+//                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
+//                                item.getQuantity()));
 
         return CreatePaymentResponse.from(payment);
     }
@@ -155,6 +157,40 @@ public class PaymentService {
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             throw new CustomException(ErrorCode.PAYMENT_NOT_APPROVABLE);
+        }
+
+        PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
+
+        if (!payment.getPaymentAmount().equals(portOneResponse.amount().total())) {
+            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        payment.approve(portOneResponse.id(), LocalDateTime.now());
+        payment.getOrder().complete();
+    }
+
+    private static final Pattern PORTONE_PAYMENT_ID_PATTERN = Pattern.compile("^pay(\\d+)-");
+
+    /**
+     * 웹훅으로 결제 승인 이벤트가 들어왔을 때 처리.
+     * 프론트에서 결제창 호출 시 만든 커스텀 paymentId(예: "pay9-a1b2c3d4")에서
+     * 우리 DB의 payment.id를 추출해 매칭한다.
+     * userId 검증은 하지 않는다 (서버-서버 통신이므로 로그인 사용자 컨텍스트가 없음).
+     * 이미 PAID/CANCELED 상태면 중복 처리 방지를 위해 그대로 종료한다(멱등 처리).
+     */
+    @Transactional
+    public void handleWebhookPaid(String portonePaymentId) {
+        Matcher matcher = PORTONE_PAYMENT_ID_PATTERN.matcher(portonePaymentId);
+        if (!matcher.find()) {
+            throw new CustomException(ErrorCode.WEBHOOK_PAYMENT_ID_FORMAT_INVALID);
+        }
+        Long paymentId = Long.parseLong(matcher.group(1));
+
+        Payment payment = paymentRepository.findDetailById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getStatus() == PaymentStatus.PAID || payment.getStatus() == PaymentStatus.CANCELED) {
+            return; // 이미 처리됨 - 중복 웹훅/confirm과의 경합 방지
         }
 
         PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
