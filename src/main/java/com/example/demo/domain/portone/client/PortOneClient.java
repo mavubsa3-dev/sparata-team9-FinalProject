@@ -1,6 +1,8 @@
 package com.example.demo.domain.portone.client;
 
 import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
+import com.example.demo.domain.portone.dto.request.PortOneCancelRequest;
+import com.example.demo.domain.portone.dto.response.PortOneCancelResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -16,5 +18,13 @@ public class PortOneClient {
                 .uri("/payments/{paymentId}", paymentId)
                 .retrieve()
                 .body(PortOnePaymentResponse.class);
+    }
+
+    public PortOneCancelResponse cancelPayment(String paymentId, String reason) {
+        return portOneRestClient.post()
+                .uri("/payments/{paymentId}/cancel", paymentId)
+                .body(new PortOneCancelRequest(reason))
+                .retrieve()
+                .body(PortOneCancelResponse.class);
     }
 }

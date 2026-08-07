@@ -127,8 +127,12 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
         }
 
-        if (payment.getStatus() != PaymentStatus.PENDING) {
+        if (payment.getStatus() != PaymentStatus.PENDING && payment.getStatus() != PaymentStatus.PAID) {
             throw new CustomException(ErrorCode.PAYMENT_CANNOT_CANCEL);
+        }
+
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            portOneClient.cancelPayment(payment.getPortonePaymentId(), "사용자 요청에 의한 결제 취소");
         }
 
         Order order = payment.getOrder();
