@@ -23,14 +23,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -42,8 +40,8 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final RankingService rankingService;
-    private final PaymentProducer paymentProducer;
     private final PortOneClient portOneClient;
+    private final PaymentProducer paymentProducer;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
@@ -85,17 +83,17 @@ public class PaymentService {
 
         Map<String, Integer> orderProducts = order.getOrderItems().stream()
                 .collect(Collectors.toMap(
-                    orderItem -> orderItem.getProduct().getName(),
-					OrderItem::getQuantity,
-                    Integer::sum
+                        orderItem -> orderItem.getProduct().getName(),
+                        OrderItem::getQuantity,
+                        Integer::sum
                 ));
 
         sendHistory(payment, orderProducts, payment.getPaymentAmount());
 
         order.getOrderItems()
-            .forEach(item ->
-                rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
-                    item.getQuantity()));
+                .forEach(item ->
+                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
+                                item.getQuantity()));
 
         return CreatePaymentResponse.from(payment);
     }
@@ -162,23 +160,6 @@ public class PaymentService {
         payment.cancel();
     }
 
-    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount){
-        String paidAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-
-        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-            .paymentId(payment.getId())
-            .userId(payment.getOrder().getUser().getId())
-            .userEmail(payment.getOrder().getUser().getEmail())
-            .orderNumber(payment.getOrder().getOrderNumber())
-            .totalAmount(totalAmount)
-            .products(orderProducts)
-            .paidAt(paidAt)
-            .build();
-
-        paymentProducer.send(event);
-    }
-}
-
     @Transactional
     public void confirmPayment(Long userId, Long paymentId, String portonePaymentId) {
         Payment payment = paymentRepository.findDetailById(paymentId)
@@ -223,7 +204,7 @@ public class PaymentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getStatus() == PaymentStatus.PAID || payment.getStatus() == PaymentStatus.CANCELED) {
-            return; // 이미 처리됨 - 중복 웹훅/confirm과의 경합 방지
+            return;
         }
 
         PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
@@ -234,5 +215,21 @@ public class PaymentService {
 
         payment.approve(portOneResponse.id(), LocalDateTime.now());
         payment.getOrder().complete();
+    }
+
+    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount) {
+        String paidAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+        PaymentCompletedEvent event = PaymentCompletedEvent.builder()
+                .paymentId(payment.getId())
+                .userId(payment.getOrder().getUser().getId())
+                .userEmail(payment.getOrder().getUser().getEmail())
+                .orderNumber(payment.getOrder().getOrderNumber())
+                .totalAmount(totalAmount)
+                .products(orderProducts)
+                .paidAt(paidAt)
+                .build();
+
+        paymentProducer.send(event);
     }
 }
