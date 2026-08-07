@@ -1,5 +1,6 @@
 package com.example.demo.domain.portone.client;
 
+import com.example.demo.common.config.PortOneProperties;
 import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
 import com.example.demo.domain.portone.dto.request.PortOneCancelRequest;
 import com.example.demo.domain.portone.dto.response.PortOneCancelResponse;
@@ -12,10 +13,14 @@ import org.springframework.web.client.RestClient;
 public class PortOneClient {
 
     private final RestClient portOneRestClient;
+    private final PortOneProperties portOneProperties;
 
     public PortOnePaymentResponse getPayment(String paymentId) {
         return portOneRestClient.get()
-                .uri("/payments/{paymentId}", paymentId)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/payments/{paymentId}")
+                        .queryParam("storeId", portOneProperties.getStoreId())
+                        .build(paymentId))
                 .retrieve()
                 .body(PortOnePaymentResponse.class);
     }
@@ -23,7 +28,7 @@ public class PortOneClient {
     public PortOneCancelResponse cancelPayment(String paymentId, String reason) {
         return portOneRestClient.post()
                 .uri("/payments/{paymentId}/cancel", paymentId)
-                .body(new PortOneCancelRequest(reason))
+                .body(new PortOneCancelRequest(reason, portOneProperties.getStoreId()))
                 .retrieve()
                 .body(PortOneCancelResponse.class);
     }
