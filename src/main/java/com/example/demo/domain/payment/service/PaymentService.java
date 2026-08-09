@@ -15,6 +15,8 @@ import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
 import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.payment.repository.PaymentRepository;
+import com.example.demo.domain.portone.client.PortOneClient;
+import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
 import com.example.demo.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,6 +27,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final RankingService rankingService;
+    private final PortOneClient portOneClient;
     private final PaymentProducer paymentProducer;
 
     @Transactional
@@ -78,17 +83,17 @@ public class PaymentService {
 
         Map<String, Integer> orderProducts = order.getOrderItems().stream()
                 .collect(Collectors.toMap(
-                    orderItem -> orderItem.getProduct().getName(),
-					OrderItem::getQuantity,
-                    Integer::sum
+                        orderItem -> orderItem.getProduct().getName(),
+                        OrderItem::getQuantity,
+                        Integer::sum
                 ));
 
         sendHistory(payment, orderProducts, payment.getPaymentAmount());
 
         order.getOrderItems()
-            .forEach(item ->
-                rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
-                    item.getQuantity()));
+                .forEach(item ->
+                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
+                                item.getQuantity()));
 
         return CreatePaymentResponse.from(payment);
     }
@@ -138,8 +143,12 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
         }
 
-        if (payment.getStatus() != PaymentStatus.PENDING) {
+        if (payment.getStatus() != PaymentStatus.PENDING && payment.getStatus() != PaymentStatus.PAID) {
             throw new CustomException(ErrorCode.PAYMENT_CANNOT_CANCEL);
+        }
+
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            portOneClient.cancelPayment(payment.getPortonePaymentId(), "사용자 요청에 의한 결제 취소");
         }
 
         Order order = payment.getOrder();
@@ -151,18 +160,75 @@ public class PaymentService {
         payment.cancel();
     }
 
-    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount){
+    @Transactional
+    public void confirmPayment(Long userId, Long paymentId, String portonePaymentId) {
+        Payment payment = paymentRepository.findDetailById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (!payment.getOrder().getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
+        }
+
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            throw new CustomException(ErrorCode.PAYMENT_NOT_APPROVABLE);
+        }
+
+        PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
+
+        if (!payment.getPaymentAmount().equals(portOneResponse.amount().total())) {
+            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        payment.approve(portOneResponse.id(), LocalDateTime.now());
+        payment.getOrder().complete();
+    }
+
+    private static final Pattern PORTONE_PAYMENT_ID_PATTERN = Pattern.compile("^pay(\\d+)-");
+
+    /**
+     * 웹훅으로 결제 승인 이벤트가 들어왔을 때 처리.
+     * 프론트에서 결제창 호출 시 만든 커스텀 paymentId(예: "pay9-a1b2c3d4")에서
+     * 우리 DB의 payment.id를 추출해 매칭한다.
+     * userId 검증은 하지 않는다 (서버-서버 통신이므로 로그인 사용자 컨텍스트가 없음).
+     * 이미 PAID/CANCELED 상태면 중복 처리 방지를 위해 그대로 종료한다(멱등 처리).
+     */
+    @Transactional
+    public void handleWebhookPaid(String portonePaymentId) {
+        Matcher matcher = PORTONE_PAYMENT_ID_PATTERN.matcher(portonePaymentId);
+        if (!matcher.find()) {
+            throw new CustomException(ErrorCode.WEBHOOK_PAYMENT_ID_FORMAT_INVALID);
+        }
+        Long paymentId = Long.parseLong(matcher.group(1));
+
+        Payment payment = paymentRepository.findDetailById(paymentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+
+        if (payment.getStatus() == PaymentStatus.PAID || payment.getStatus() == PaymentStatus.CANCELED) {
+            return;
+        }
+
+        PortOnePaymentResponse portOneResponse = portOneClient.getPayment(portonePaymentId);
+
+        if (!payment.getPaymentAmount().equals(portOneResponse.amount().total())) {
+            throw new CustomException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
+        }
+
+        payment.approve(portOneResponse.id(), LocalDateTime.now());
+        payment.getOrder().complete();
+    }
+
+    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount) {
         String paidAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
 
         PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-            .paymentId(payment.getId())
-            .userId(payment.getOrder().getUser().getId())
-            .userEmail(payment.getOrder().getUser().getEmail())
-            .orderNumber(payment.getOrder().getOrderNumber())
-            .totalAmount(totalAmount)
-            .products(orderProducts)
-            .paidAt(paidAt)
-            .build();
+                .paymentId(payment.getId())
+                .userId(payment.getOrder().getUser().getId())
+                .userEmail(payment.getOrder().getUser().getEmail())
+                .orderNumber(payment.getOrder().getOrderNumber())
+                .totalAmount(totalAmount)
+                .products(orderProducts)
+                .paidAt(paidAt)
+                .build();
 
         paymentProducer.send(event);
     }

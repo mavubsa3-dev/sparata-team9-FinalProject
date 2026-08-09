@@ -53,4 +53,10 @@ public class Payment extends BaseTimeEntity {
         this.status = PaymentStatus.CANCELED;
         this.canceledAt = LocalDateTime.now();
     }
+
+    public void approve(String portonePaymentId, LocalDateTime approvedAt) {
+        this.status = PaymentStatus.PAID;
+        this.portonePaymentId = portonePaymentId;
+        this.approvedAt = approvedAt;
+    }
 }
