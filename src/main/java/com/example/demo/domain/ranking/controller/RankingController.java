@@ -40,6 +40,6 @@ public class RankingController {
 
 	@GetMapping("/week/{productId}")
 	public ResponseEntity<GetProductInfoResponse> getProductInWeekRanking(@PathVariable Long productId){
-		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInRanking(productId));
+		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
 	}
 }
