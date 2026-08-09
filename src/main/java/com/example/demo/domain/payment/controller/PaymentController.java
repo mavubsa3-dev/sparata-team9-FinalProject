@@ -1,5 +1,6 @@
 package com.example.demo.domain.payment.controller;
 
+import com.example.demo.domain.payment.dto.request.ConfirmPaymentRequest;
 import com.example.demo.domain.payment.dto.request.CreatePaymentRequest;
 import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
@@ -28,6 +29,15 @@ public class PaymentController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PatchMapping("/{paymentId}/confirm")
+    public ResponseEntity<Void> confirmPayment(
+            @PathVariable Long paymentId,
+            @Valid @RequestBody ConfirmPaymentRequest request
+    ) {
+        paymentService.confirmPayment(getCurrentUserId(), paymentId, request.portonePaymentId());
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping
     public ResponseEntity<List<GetPaymentResponse>> getPayments() {
         List<GetPaymentResponse> response = paymentService.getPayments(getCurrentUserId());
@@ -41,9 +51,9 @@ public class PaymentController {
     }
 
     @PatchMapping("/{paymentId}/cancel")
-    public ResponseEntity<Void> cancelPayment(@PathVariable Long paymentId) {
+    public ResponseEntity<String> cancelPayment(@PathVariable Long paymentId) {
         paymentService.cancelPayment(getCurrentUserId(), paymentId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("결제 취소가 완료되었습니다.");
     }
 
     private Long getCurrentUserId() {
