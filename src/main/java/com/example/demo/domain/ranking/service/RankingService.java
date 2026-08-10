@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -18,6 +19,7 @@ import com.example.demo.domain.ranking.dto.response.GetProductInfoResponse;
 import com.example.demo.domain.ranking.dto.response.GetProductRankingResponse;
 
 import lombok.RequiredArgsConstructor;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class RankingService {
 	private final StringRedisTemplate stringRedisTemplate;
 	private static final String PRODUCT_RANKING_KEY = "product:ranking:";
 	private final ProductRepository productRepository;
+	private final ObjectMapper objectMapper;
 
 	public void increaseScore(String productInfo, int quantity){
 
@@ -94,17 +97,36 @@ public class RankingService {
 	}
 
 	public GetProductInfoResponse getProductInRanking(Long productId){
-		LocalDate currentDate = LocalDate.now();
-		String key = PRODUCT_RANKING_KEY + currentDate;
 
-		Set<String> rankingProducts = stringRedisTemplate.opsForZSet().range(key, 0, -1);
-		boolean existsInRanking = rankingProducts != null && rankingProducts.stream()
-			.anyMatch( value -> {
-				String[] parts = value.split(":", 2);
-				Long rankProductId = Long.parseLong(parts[0]);
+		boolean existsInRanking = findProductInTodayRanking(productId);
 
-				return rankProductId.equals(productId);
-			});
+		if(!existsInRanking){
+			throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
+		}
+
+		String key = "product:info:" + productId;
+		String cacheProduct = stringRedisTemplate.opsForValue().get(key);
+
+		if (cacheProduct != null){
+			return objectMapper.readValue(cacheProduct, GetProductInfoResponse.class);
+		}
+
+		Product product = productRepository.findById(productId).orElseThrow(
+			() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND)
+		);
+
+		stringRedisTemplate.opsForValue().set(
+			key,
+			objectMapper.writeValueAsString(GetProductInfoResponse.from(product)),
+			Duration.ofMinutes(10)
+		);
+
+		return GetProductInfoResponse.from(product);
+	}
+
+	public GetProductInfoResponse getProductInWeekRanking(Long productId){
+
+		boolean existsInRanking = findProductInWeekRanking(productId);
 
 		if(!existsInRanking){
 			throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
@@ -117,7 +139,23 @@ public class RankingService {
 		return GetProductInfoResponse.from(product);
 	}
 
-	public GetProductInfoResponse getProductInWeekRanking(Long productId){
+	private boolean findProductInTodayRanking(Long productId){
+
+		LocalDate currentDate = LocalDate.now();
+		String key = PRODUCT_RANKING_KEY + currentDate;
+
+		Set<String> rankingProducts = stringRedisTemplate.opsForZSet().range(key, 0, -1);
+		return rankingProducts != null && rankingProducts.stream()
+			.anyMatch( value -> {
+				String[] parts = value.split(":", 2);
+				Long rankProductId = Long.parseLong(parts[0]);
+
+				return rankProductId.equals(productId);
+			});
+	}
+
+	private boolean findProductInWeekRanking(Long productId){
+
 		LocalDate currentDate = LocalDate.now();
 
 		List<String> keys = List.of(
@@ -138,23 +176,13 @@ public class RankingService {
 
 		Set<String> rankingProducts = stringRedisTemplate.opsForZSet().range(dKey, 0, -1);
 
-		boolean existsInRanking = rankingProducts != null && rankingProducts.stream()
+		return rankingProducts != null && rankingProducts.stream()
 			.anyMatch( value -> {
 				String[] parts = value.split(":", 2);
 				Long rankProductId = Long.parseLong(parts[0]);
 
 				return rankProductId.equals(productId);
 			});
-
-		if(!existsInRanking){
-			throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
-		}
-
-		Product product = productRepository.findById(productId).orElseThrow(
-			() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND)
-		);
-
-		return GetProductInfoResponse.from(product);
 	}
 
 	private GetProductRankingResponse toResponse(ZSetOperations.TypedTuple<String> tuple){
