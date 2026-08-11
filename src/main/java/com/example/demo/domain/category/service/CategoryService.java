@@ -50,7 +50,13 @@ public class CategoryService {
 
 	@Transactional(readOnly = true)
 	public CategoryListResponse getCategory(){
-		CategoryListResponse cached = categoryCacheService.getCategoryCache();
+		CategoryListResponse cached = null;
+		try {
+			cached = categoryCacheService.getCategoryCache();
+		} catch (Exception e) {
+			log.warn("Redis 연결 실패, DB에서 직접 조회합니다.", e);
+		}
+
 		if (cached != null) {
 			return cached;
 		}
@@ -60,7 +66,13 @@ public class CategoryService {
 				.toList();
 
 		CategoryListResponse response = CategoryListResponse.from(categories);
-		categoryCacheService.saveCategoryCache(response);
+
+		try {
+			categoryCacheService.saveCategoryCache(response);
+		} catch (Exception e) {
+			log.warn("Redis 저장 실패, 캐싱 없이 응답합니다.", e);
+		}
+
 		return response;
 	}
 
