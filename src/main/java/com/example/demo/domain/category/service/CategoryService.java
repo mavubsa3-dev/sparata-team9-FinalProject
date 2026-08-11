@@ -2,8 +2,6 @@ package com.example.demo.domain.category.service;
 
 import java.util.List;
 
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +9,7 @@ import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.category.dto.request.CreateCategoryRequest;
 import com.example.demo.domain.category.dto.request.UpdateCategoryRequest;
+import com.example.demo.domain.category.dto.response.CategoryListResponse;
 import com.example.demo.domain.category.dto.response.CreateCategoryResponse;
 import com.example.demo.domain.category.dto.response.DeleteCategoryResponse;
 import com.example.demo.domain.category.dto.response.GetCategoryResponse;
@@ -32,9 +31,9 @@ public class CategoryService {
 	private final CategoryRepository categoryRepository;
 	private final UserRepository userRepository;
 	private final ProductRepository productRepository;
+	private final CategoryCacheService categoryCacheService;
 
 	@Transactional
-	@CacheEvict(value = "categories", allEntries = true)
 	public CreateCategoryResponse createCategory(Long adminId, CreateCategoryRequest request){
 		User admin = userRepository.findById(adminId).orElseThrow(
 				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
@@ -44,20 +43,28 @@ public class CategoryService {
 		Category savedCategory = categoryRepository.save(category);
 
 		log.info("생성된 카테고리 : {}, 생성한 관리자 : {} ", request.name(), admin.getName());
+		categoryCacheService.deleteCategoryCache();
 
 		return CreateCategoryResponse.from(savedCategory);
 	}
 
 	@Transactional(readOnly = true)
-	@Cacheable(value = "categories")
-	public List<GetCategoryResponse> getCategory(){
-		return categoryRepository.findAll().stream()
+	public CategoryListResponse getCategory(){
+		CategoryListResponse cached = categoryCacheService.getCategoryCache();
+		if (cached != null) {
+			return cached;
+		}
+
+		List<GetCategoryResponse> categories = categoryRepository.findAll().stream()
 				.map(GetCategoryResponse::from)
 				.toList();
+
+		CategoryListResponse response = CategoryListResponse.from(categories);
+		categoryCacheService.saveCategoryCache(response);
+		return response;
 	}
 
 	@Transactional
-	@CacheEvict(value = "categories", allEntries = true)
 	public UpdateCategoryResponse updateCategory(Long categoryId, UpdateCategoryRequest request, Long adminId){
 		User admin = userRepository.findById(adminId).orElseThrow(
 				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
@@ -69,12 +76,12 @@ public class CategoryService {
 
 		category.updateName(request.name(), admin);
 		log.info("변경된 카테고리 이름 : {} , 변경한 관리자 : {} ", request.name(), admin.getName());
+		categoryCacheService.deleteCategoryCache();
 
 		return UpdateCategoryResponse.from(category);
 	}
 
 	@Transactional
-	@CacheEvict(value = "categories", allEntries = true)
 	public DeleteCategoryResponse deleteCategory(Long categoryId, Long adminId) {
 
 		User admin = userRepository.findById(adminId).orElseThrow(
@@ -93,6 +100,7 @@ public class CategoryService {
 		categoryRepository.delete(category);
 
 		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
+		categoryCacheService.deleteCategoryCache();
 
 		return DeleteCategoryResponse.from(category);
 	}

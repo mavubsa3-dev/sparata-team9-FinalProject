@@ -1,7 +1,5 @@
 package com.example.demo.domain.category.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,9 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.domain.category.dto.request.CreateCategoryRequest;
 import com.example.demo.domain.category.dto.request.UpdateCategoryRequest;
+import com.example.demo.domain.category.dto.response.CategoryListResponse;
 import com.example.demo.domain.category.dto.response.CreateCategoryResponse;
 import com.example.demo.domain.category.dto.response.DeleteCategoryResponse;
-import com.example.demo.domain.category.dto.response.GetCategoryResponse;
 import com.example.demo.domain.category.dto.response.UpdateCategoryResponse;
 import com.example.demo.domain.category.service.CategoryService;
 
@@ -33,18 +31,17 @@ public class CategoryController {
 
 	@PostMapping
 	public ResponseEntity<CreateCategoryResponse> createCategory(@AuthenticationPrincipal Long adminId, @RequestBody CreateCategoryRequest request){
-
 		return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(adminId, request));
 	}
 
 	@GetMapping
-	public ResponseEntity<List<GetCategoryResponse>> getCategory(){
+	public ResponseEntity<CategoryListResponse> getCategory(){
 		return ResponseEntity.status(HttpStatus.OK).body(categoryService.getCategory());
 	}
 
 	@PatchMapping("/{categoryId}")
 	public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable Long categoryId, @AuthenticationPrincipal Long adminId, @RequestBody
-		UpdateCategoryRequest request){
+	UpdateCategoryRequest request){
 		return ResponseEntity.status(HttpStatus.OK).body(categoryService.updateCategory(categoryId, request, adminId));
 	}
 
