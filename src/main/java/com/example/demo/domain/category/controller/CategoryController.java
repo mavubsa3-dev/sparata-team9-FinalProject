@@ -33,7 +33,6 @@ public class CategoryController {
 
 	@PostMapping
 	public ResponseEntity<CreateCategoryResponse> createCategory(@AuthenticationPrincipal Long adminId, @RequestBody CreateCategoryRequest request){
-
 		return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(adminId, request));
 	}
 
@@ -44,7 +43,7 @@ public class CategoryController {
 
 	@PatchMapping("/{categoryId}")
 	public ResponseEntity<UpdateCategoryResponse> updateCategory(@PathVariable Long categoryId, @AuthenticationPrincipal Long adminId, @RequestBody
-		UpdateCategoryRequest request){
+	UpdateCategoryRequest request){
 		return ResponseEntity.status(HttpStatus.OK).body(categoryService.updateCategory(categoryId, request, adminId));
 	}
 
