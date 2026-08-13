@@ -16,7 +16,7 @@ public class PaymentProducer {
 	private final KafkaTemplate<String, PaymentCompletedEvent> paymentCompletedEventKafkaTemplate;
 
 	public void send(PaymentCompletedEvent event){
-		String key = event.getOrderNumber();;
+		String key = event.getOrderNumber();
 
 		paymentCompletedEventKafkaTemplate.send(TOPIC_PAYMENT_COMPLETED, key, event);
 	}
