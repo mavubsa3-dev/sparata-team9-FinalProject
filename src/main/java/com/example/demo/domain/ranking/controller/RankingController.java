@@ -1,6 +1,7 @@
 package com.example.demo.domain.ranking.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,5 +42,10 @@ public class RankingController {
 	@GetMapping("/week/{productId}")
 	public ResponseEntity<GetProductInfoResponse> getProductInWeekRanking(@PathVariable Long productId){
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
+	}
+
+	@GetMapping("/cache/stats")
+	public Map<String, Object> getCacheStats() {
+		return rankingService.getCacheStats();  // 한 줄로 끝
 	}
 }

@@ -36,9 +36,9 @@ public class UserService {
 		);
 
 		// 회원 정보 업데이트
-		if (request.name() != null) user.updateName(request.name());
-		if (request.password() != null) user.updatePassword(passwordEncoder.encode(request.password()));
-		if (request.phoneNumber() != null) user.updatePhoneNumber(request.phoneNumber());
+		if (request.name() != null && !request.name().isBlank()) user.updateName(request.name());
+		if (request.password() != null && !request.password().isBlank()) user.updatePassword(passwordEncoder.encode(request.password()));
+		if (request.phoneNumber() != null && !request.phoneNumber().isBlank()) user.updatePhoneNumber(request.phoneNumber());
 
 		return UpdateUserResponse.from(user);
 	}
