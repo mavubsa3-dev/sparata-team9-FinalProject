@@ -121,7 +121,7 @@ public class OrderService {
         );
     }
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    @Scheduled(fixedDelay = 60 * 1000)
     @Transactional
     public void cancelExpiredOrders() {
         LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);

@@ -11,19 +11,27 @@ import com.example.demo.domain.order.repository.OrderRepository;
 import com.example.demo.domain.payment.dto.request.CreatePaymentRequest;
 import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
+import com.example.demo.domain.payment.dto.response.GetSettlementResponse;
 import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
+import com.example.demo.domain.payment.entity.Settlement;
 import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.payment.repository.PaymentRepository;
+import com.example.demo.domain.payment.repository.PaymentSettlementSummary;
+import com.example.demo.domain.payment.repository.SettlementRepository;
 import com.example.demo.domain.portone.client.PortOneClient;
 import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
 import com.example.demo.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -31,12 +39,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
 public class PaymentService {
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+
     private final PaymentRepository paymentRepository;
+    private final SettlementRepository settlementRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
     private final RankingService rankingService;
@@ -132,6 +144,62 @@ public class PaymentService {
     public void cancelPaymentIfExists(Long orderId) {
         paymentRepository.findByOrderId(orderId)
                 .ifPresent(Payment::cancel);
+    }
+
+    /**
+     * 매일 00:00(KST)에 실행되어 "어제" 하루치 매출을 집계해서 저장한다.
+     * settlement_date 유니크 제약 덕분에, 이미 그 날짜 정산이 있으면 갱신(update)하고
+     * 없으면 새로 생성(insert)한다 — 재실행/중복 실행에도 안전하다(멱등).
+     */
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Transactional
+    public void aggregateYesterdaySettlement() {
+        LocalDate targetDate = LocalDate.now(KST).minusDays(1);
+        Settlement settlement = aggregateSettlement(targetDate);
+
+        log.info("[Settlement] date={}, totalAmount={}, orderCount={}",
+                settlement.getSettlementDate(), settlement.getTotalAmount(), settlement.getOrderCount());
+    }
+
+    /**
+     * 특정 날짜의 매출을 집계해서 저장한다(upsert).
+     * 스케줄러뿐 아니라 관리자가 특정 날짜를 수동으로 재집계할 때도 재사용한다.
+     */
+    @Transactional
+    public Settlement aggregateSettlement(LocalDate targetDate) {
+        LocalDateTime start = targetDate.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+
+        PaymentSettlementSummary summary = paymentRepository.getDailySettlementSummary(
+                PaymentStatus.PAID, start, end
+        );
+        Long totalAmount = summary.getTotalAmount() != null ? summary.getTotalAmount() : 0L;
+        Long orderCount = summary.getOrderCount() != null ? summary.getOrderCount() : 0L;
+
+        return settlementRepository.findBySettlementDate(targetDate)
+                .map(existing -> {
+                    existing.update(totalAmount, orderCount);
+                    return existing;
+                })
+                .orElseGet(() -> settlementRepository.save(
+                        new Settlement(targetDate, totalAmount, orderCount)
+                ));
+    }
+
+    public List<GetSettlementResponse> getSettlements() {
+        return settlementRepository.findAllByOrderBySettlementDateDesc().stream()
+                .map(GetSettlementResponse::from)
+                .toList();
+    }
+
+    public GetSettlementResponse getSettlement(LocalDate settlementDate) {
+        Settlement settlement = settlementRepository.findBySettlementDate(settlementDate)
+                .orElseThrow(() -> new CustomException(ErrorCode.SETTLEMENT_NOT_FOUND));
+        return GetSettlementResponse.from(settlement);
+    }
+
+    public GetSettlementResponse aggregateSettlementForAdmin(LocalDate settlementDate) {
+        return GetSettlementResponse.from(aggregateSettlement(settlementDate));
     }
 
     @Transactional
