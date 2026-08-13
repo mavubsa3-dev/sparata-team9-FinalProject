@@ -1,5 +1,7 @@
 package com.example.demo.domain.category.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.domain.category.dto.request.CreateCategoryRequest;
 import com.example.demo.domain.category.dto.request.UpdateCategoryRequest;
-import com.example.demo.domain.category.dto.response.CategoryListResponse;
 import com.example.demo.domain.category.dto.response.CreateCategoryResponse;
 import com.example.demo.domain.category.dto.response.DeleteCategoryResponse;
+import com.example.demo.domain.category.dto.response.GetCategoryResponse;
 import com.example.demo.domain.category.dto.response.UpdateCategoryResponse;
 import com.example.demo.domain.category.service.CategoryService;
 
@@ -35,7 +37,7 @@ public class CategoryController {
 	}
 
 	@GetMapping
-	public ResponseEntity<CategoryListResponse> getCategory(){
+	public ResponseEntity<List<GetCategoryResponse>> getCategory(){
 		return ResponseEntity.status(HttpStatus.OK).body(categoryService.getCategory());
 	}
 

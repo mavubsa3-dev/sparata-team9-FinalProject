@@ -9,7 +9,6 @@ import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.category.dto.request.CreateCategoryRequest;
 import com.example.demo.domain.category.dto.request.UpdateCategoryRequest;
-import com.example.demo.domain.category.dto.response.CategoryListResponse;
 import com.example.demo.domain.category.dto.response.CreateCategoryResponse;
 import com.example.demo.domain.category.dto.response.DeleteCategoryResponse;
 import com.example.demo.domain.category.dto.response.GetCategoryResponse;
@@ -43,37 +42,54 @@ public class CategoryService {
 		Category savedCategory = categoryRepository.save(category);
 
 		log.info("생성된 카테고리 : {}, 생성한 관리자 : {} ", request.name(), admin.getName());
-		categoryCacheService.deleteCategoryCache();
+
+		GetCategoryResponse response = GetCategoryResponse.from(savedCategory);
+		try {
+			categoryCacheService.saveCategoryCache(savedCategory.getId(), response);
+		} catch (Exception e) {
+			log.warn("Redis 캐시 저장 실패", e);
+		}
 
 		return CreateCategoryResponse.from(savedCategory);
 	}
 
 	@Transactional(readOnly = true)
-	public CategoryListResponse getCategory(){
-		CategoryListResponse cached = null;
+	public List<GetCategoryResponse> getCategory(){
+		List<Long> ids;
 		try {
-			cached = categoryCacheService.getCategoryCache();
+			ids = categoryRepository.findAll().stream()
+					.map(Category::getId)
+					.toList();
 		} catch (Exception e) {
-			log.warn("Redis 연결 실패, DB에서 직접 조회합니다.", e);
+			throw e;
 		}
 
-		if (cached != null) {
-			return cached;
-		}
+		return ids.stream()
+				.map(id -> {
+					GetCategoryResponse cached = null;
+					try {
+						cached = categoryCacheService.getCategoryCache(id);
+					} catch (Exception e) {
+						log.warn("Redis 연결 실패, DB에서 직접 조회합니다.", e);
+					}
 
-		List<GetCategoryResponse> categories = categoryRepository.findAll().stream()
-				.map(GetCategoryResponse::from)
+					if (cached != null) {
+						return cached;
+					}
+
+					Category category = categoryRepository.findById(id)
+							.orElseThrow(() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND));
+					GetCategoryResponse response = GetCategoryResponse.from(category);
+
+					try {
+						categoryCacheService.saveCategoryCache(id, response);
+					} catch (Exception e) {
+						log.warn("Redis 캐시 저장 실패", e);
+					}
+
+					return response;
+				})
 				.toList();
-
-		CategoryListResponse response = CategoryListResponse.from(categories);
-
-		try {
-			categoryCacheService.saveCategoryCache(response);
-		} catch (Exception e) {
-			log.warn("Redis 저장 실패, 캐싱 없이 응답합니다.", e);
-		}
-
-		return response;
 	}
 
 	@Transactional
@@ -88,7 +104,12 @@ public class CategoryService {
 
 		category.updateName(request.name(), admin);
 		log.info("변경된 카테고리 이름 : {} , 변경한 관리자 : {} ", request.name(), admin.getName());
-		categoryCacheService.deleteCategoryCache();
+
+		try {
+			categoryCacheService.deleteCategoryCache(categoryId);
+		} catch (Exception e) {
+			log.warn("Redis 캐시 삭제 실패", e);
+		}
 
 		return UpdateCategoryResponse.from(category);
 	}
@@ -112,7 +133,12 @@ public class CategoryService {
 		categoryRepository.delete(category);
 
 		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
-		categoryCacheService.deleteCategoryCache();
+
+		try {
+			categoryCacheService.deleteCategoryCache(categoryId);
+		} catch (Exception e) {
+			log.warn("Redis 캐시 삭제 실패", e);
+		}
 
 		return DeleteCategoryResponse.from(category);
 	}
