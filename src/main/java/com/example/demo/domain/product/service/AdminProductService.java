@@ -1,5 +1,6 @@
 package com.example.demo.domain.product.service;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -98,6 +99,7 @@ public class AdminProductService {
 		return UpdateProductResponse.from(product);
 	}
 
+	@CacheEvict(value = "Caffeine:product", key = "#productId")
 	@Transactional
 	public DeleteProductResponse deleteProduct(Long adminId, Long productId){
 		User admin = userRepository.findById(adminId).orElseThrow(
@@ -115,9 +117,9 @@ public class AdminProductService {
 	}
 
 	private void validAndUpdateProduct(Product product, UpdateProductRequest request){
-		if (request.name() != null) product.updateName(request.name());
-		if (request.description() != null) product.updateDescription(request.description());
-		if (request.thumbnailUrl() != null) product.updateThumbnail(request.thumbnailUrl());
+		if (request.name() != null && !request.name().isBlank()) product.updateName(request.name());
+		if (request.description() != null && !request.description().isBlank()) product.updateDescription(request.description());
+		if (request.thumbnailUrl() != null && !request.thumbnailUrl().isBlank()) product.updateThumbnail(request.thumbnailUrl());
 		if (request.price() != null) product.updatePrice(request.price());
 		if (request.stock() != null) product.updateStock(request.stock());
 		if (request.status() != null) product.updateStatus(request.status());

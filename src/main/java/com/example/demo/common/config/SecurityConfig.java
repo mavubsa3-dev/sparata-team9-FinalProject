@@ -48,7 +48,8 @@ public class SecurityConfig {
 						"/api/config/**",
 						"/api/webhooks/**",
 					"/actuator/health",
-					"/actuator/info"
+					"/actuator/info",
+					"/api/products/ranking/**"
 				).permitAll()
 				.requestMatchers("/api/admin/**").hasRole("ADMIN")
 				.anyRequest().authenticated()
