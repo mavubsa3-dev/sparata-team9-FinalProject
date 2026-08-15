@@ -14,7 +14,6 @@ import com.example.demo.domain.payment.dto.response.CreatePaymentResponse;
 import com.example.demo.domain.payment.dto.response.GetPaymentResponse;
 import com.example.demo.domain.payment.entity.Payment;
 import com.example.demo.domain.payment.entity.PaymentStatus;
-import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.payment.repository.PaymentRepository;
 import com.example.demo.domain.portone.client.PortOneClient;
 import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
