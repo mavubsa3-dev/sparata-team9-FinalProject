@@ -30,6 +30,6 @@ public class NotificationListener {
 		containerFactory = "paymentCompletedKafkaListenerContainerFactory"
 	) public void dltConsumer(PaymentCompletedEvent event){
 
-		log.error("[재시도 실패 DLT 전송] paymentId : {} ", event.getPaymentId());
+		log.error("[재시도 실패 DLT 전송] paymentId : {} ", event.paymentId());
 	}
 }

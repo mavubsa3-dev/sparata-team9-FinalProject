@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.example.demo.common.config.kafka.event.OrderItemInfo;
 import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
@@ -31,14 +33,14 @@ public class NotificationService {
 
 	@Transactional
 	public void saveAndSend(PaymentCompletedEvent event){
-		User user = userRepository.findById(event.getUserId()).orElseThrow(
+		User user = userRepository.findById(event.userId()).orElseThrow(
 			() -> new CustomException(ErrorCode.USER_NOT_FOUND)
 		);
 
-		String title = "[결제 완료] 주문 번호 " + event.getOrderNumber();
+		String title = "[결제 완료] 주문 번호 " + event.orderId();
 
 		saveNotification(user, title, event);
-		sendEmailNotification(event, title);
+		sendEmailNotification(user, event, title);
 	}
 
 	@Transactional(readOnly = true)
@@ -80,28 +82,26 @@ public class NotificationService {
 
 	private void saveNotification(User user, String title, PaymentCompletedEvent event){
 
-		String dbProductList = event.getProducts().entrySet().stream()
-			.map(entry -> entry.getKey() + " " + entry.getValue() + "개")
-			.collect(Collectors.joining("\n - ", "- ", ""));
+		String dbProductList = formatOrderItems(event.orderItems(), "- ", "%s %d개");
 
 		String dbMessage = String.format(
 			"주문번호: %s\n" +
 				"주문 상품:\n%s\n" +
 				"결제금액: %d원\n" +
 				"결제일시: %s",
-			event.getOrderNumber(),
+			event.orderId(),
 			dbProductList,
-			event.getTotalAmount(),
-			event.getPaidAt()
+			event.totalAmount(),
+			event.completedAt()
 		);
 
 		notificationRepository.save(new Notifications(user, title, dbMessage));
 	}
 
-	private void sendEmailNotification(PaymentCompletedEvent event, String title){
+	private void sendEmailNotification(User user, PaymentCompletedEvent event, String title){
 
-		String htmlProductList = event.getProducts().entrySet().stream()
-			.map(entry -> String.format("<p>- %s x %d개</p>", entry.getKey(), entry.getValue()))
+		String htmlProductList = event.orderItems().stream()
+			.map(item -> String.format("<p>- %s x %d개</p>", item.productName(), item.quantity()))
 			.collect(Collectors.joining(""));
 
 		String message = String.format(
@@ -111,16 +111,22 @@ public class NotificationService {
 				"%s" +
 				"<p><b>결제금액:</b> %d원</p>" +
 				"<p><b>결제일시:</b> %s</p>",
-			event.getOrderNumber(),
+			event.orderId(),
 			htmlProductList,
-			event.getTotalAmount(),
-			event.getPaidAt()
+			event.totalAmount(),
+			event.completedAt()
 		);
 
 		emailService.send(new SendEmailMessageRequest(
-			event.getUserEmail(),
+			user.getEmail(),
 			title,
 			message
 		));
+	}
+
+	private String formatOrderItems(List<OrderItemInfo> orderItems, String prefix, String format) {
+		return orderItems.stream()
+			.map(item -> String.format(format, item.productName(), item.quantity()))
+			.collect(Collectors.joining("\n" + prefix, prefix, ""));
 	}
 }

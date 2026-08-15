@@ -1,5 +1,6 @@
 package com.example.demo.domain.payment.service;
 
+import com.example.demo.common.config.kafka.event.OrderItemInfo;
 import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
@@ -17,19 +18,18 @@ import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.payment.repository.PaymentRepository;
 import com.example.demo.domain.portone.client.PortOneClient;
 import com.example.demo.domain.portone.dto.PortOnePaymentResponse;
-import com.example.demo.domain.ranking.service.RankingService;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -39,14 +39,13 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final AddressRepository addressRepository;
-    private final RankingService rankingService;
+    private final ApplicationEventPublisher eventPublisher;
     private final PortOneClient portOneClient;
-    private final PaymentProducer paymentProducer;
 
     @Transactional
     public CreatePaymentResponse createPayment(Long userId, CreatePaymentRequest request) {
         Order order = orderRepository.findById(request.orderId())
-                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         if (!order.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.ORDER_ACCESS_DENIED);
@@ -57,16 +56,16 @@ public class PaymentService {
         }
 
         Address address = addressRepository.findById(request.addressId())
-                .orElseThrow(() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.ADDRESS_NOT_FOUND));
         if (!address.getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.ADDRESS_ACCESS_DENIED);
         }
         order.assignAddress(
-                address.getName(),
-                address.getPhoneNumber(),
-                address.getZipCode(),
-                address.getBasicAddress(),
-                address.getDetailAddress()
+            address.getName(),
+            address.getPhoneNumber(),
+            address.getZipCode(),
+            address.getBasicAddress(),
+            address.getDetailAddress()
         );
 
         if (paymentRepository.existsByOrderId(order.getId())) {
@@ -81,26 +80,14 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
 
-        Map<String, Integer> orderProducts = order.getOrderItems().stream()
-                .collect(Collectors.toMap(
-                        orderItem -> orderItem.getProduct().getName(),
-                        OrderItem::getQuantity,
-                        Integer::sum
-                ));
-
-        sendHistory(payment, orderProducts, payment.getPaymentAmount());
-
-        order.getOrderItems()
-                .forEach(item ->
-                        rankingService.increaseScore(item.getProduct().getId() + ":" + item.getProduct().getName(),
-                                item.getQuantity()));
+        publishPaymentCompletedEvent(payment);
 
         return CreatePaymentResponse.from(payment);
     }
 
     public GetPaymentResponse getPayment(Long userId, Long paymentId) {
         Payment payment = paymentRepository.findDetailById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (!payment.getOrder().getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
@@ -111,19 +98,19 @@ public class PaymentService {
 
     public List<GetPaymentResponse> getPayments(Long userId) {
         return paymentRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
-                .map(GetPaymentResponse::from)
-                .toList();
+            .map(GetPaymentResponse::from)
+            .toList();
     }
 
     public List<GetPaymentResponse> getPaymentsForAdmin() {
         return paymentRepository.findAllOrderByCreatedAtDesc().stream()
-                .map(GetPaymentResponse::from)
-                .toList();
+            .map(GetPaymentResponse::from)
+            .toList();
     }
 
     public GetPaymentResponse getPaymentForAdmin(Long paymentId) {
         Payment payment = paymentRepository.findDetailById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         return GetPaymentResponse.from(payment);
     }
@@ -131,13 +118,13 @@ public class PaymentService {
     @Transactional
     public void cancelPaymentIfExists(Long orderId) {
         paymentRepository.findByOrderId(orderId)
-                .ifPresent(Payment::cancel);
+            .ifPresent(Payment::cancel);
     }
 
     @Transactional
     public void cancelPayment(Long userId, Long paymentId) {
         Payment payment = paymentRepository.findDetailById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (!payment.getOrder().getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
@@ -163,7 +150,7 @@ public class PaymentService {
     @Transactional
     public void confirmPayment(Long userId, Long paymentId, String portonePaymentId) {
         Payment payment = paymentRepository.findDetailById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (!payment.getOrder().getUser().getId().equals(userId)) {
             throw new CustomException(ErrorCode.PAYMENT_ACCESS_DENIED);
@@ -181,6 +168,8 @@ public class PaymentService {
 
         payment.approve(portOneResponse.id(), LocalDateTime.now());
         payment.getOrder().complete();
+
+        publishPaymentCompletedEvent(payment);
     }
 
     private static final Pattern PORTONE_PAYMENT_ID_PATTERN = Pattern.compile("^pay(\\d+)-");
@@ -201,7 +190,7 @@ public class PaymentService {
         Long paymentId = Long.parseLong(matcher.group(1));
 
         Payment payment = paymentRepository.findDetailById(paymentId)
-                .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
+            .orElseThrow(() -> new CustomException(ErrorCode.PAYMENT_NOT_FOUND));
 
         if (payment.getStatus() == PaymentStatus.PAID || payment.getStatus() == PaymentStatus.CANCELED) {
             return;
@@ -215,21 +204,30 @@ public class PaymentService {
 
         payment.approve(portOneResponse.id(), LocalDateTime.now());
         payment.getOrder().complete();
+
+        publishPaymentCompletedEvent(payment);
     }
 
-    private void sendHistory(Payment payment, Map<String, Integer> orderProducts, Long totalAmount) {
-        String paidAt = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+    private void publishPaymentCompletedEvent(Payment payment) {
+        Order order = payment.getOrder();
+
+        List<OrderItemInfo> orderItems = order.getOrderItems().stream()
+            .map(item -> new OrderItemInfo(
+                item.getProduct().getId(),
+                item.getProductName(),
+                item.getQuantity()
+            ))
+            .toList();
 
         PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-                .paymentId(payment.getId())
-                .userId(payment.getOrder().getUser().getId())
-                .userEmail(payment.getOrder().getUser().getEmail())
-                .orderNumber(payment.getOrder().getOrderNumber())
-                .totalAmount(totalAmount)
-                .products(orderProducts)
-                .paidAt(paidAt)
-                .build();
+            .paymentId(payment.getId())
+            .userId(order.getUser().getId())
+            .orderId(order.getId())
+            .totalAmount(payment.getPaymentAmount())
+            .orderItems(orderItems)
+            .completedAt(LocalDateTime.now())
+            .build();
 
-        paymentProducer.send(event);
+        eventPublisher.publishEvent(event);
     }
 }
