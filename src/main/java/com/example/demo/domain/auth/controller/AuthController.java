@@ -2,12 +2,14 @@ package com.example.demo.domain.auth.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.domain.auth.dto.request.LoginRequest;
+import com.example.demo.domain.auth.dto.request.ReissueRequest;
 import com.example.demo.domain.auth.dto.request.SignupRequest;
 import com.example.demo.domain.auth.dto.response.LoginResponse;
 import com.example.demo.domain.auth.dto.response.SignupResponse;
@@ -31,5 +33,16 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
 		return ResponseEntity.status(HttpStatus.OK).body(authService.login(request));
+	}
+
+	@PostMapping("/reissue")
+	public ResponseEntity<LoginResponse> reissue(@RequestBody ReissueRequest request){
+		return ResponseEntity.status(HttpStatus.CREATED).body(authService.reissue(request.refreshToken()));
+	}
+
+	@PostMapping("/logout")
+	public ResponseEntity<Void> logout(@AuthenticationPrincipal Long userId) {
+		authService.logout(userId);
+		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 }

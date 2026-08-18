@@ -24,6 +24,7 @@ public enum ErrorCode {
 	// 401 UNAUTHORIZED
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),
 	WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "WEBHOOK_SIGNATURE_INVALID", "결제 알림을 보낸 곳이 신뢰할 수 있는 곳인지 확인할 수 없습니다."),
+	INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 리프레시 토큰입니다."),
 	// 403 FORBIDDEN
 	FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다"),
 	ADDRESS_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ADDRESS_ACCESS_DENIED", "해당 배송지에 접근할 권한이 없습니다."),
