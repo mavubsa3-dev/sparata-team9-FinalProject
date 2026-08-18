@@ -210,6 +210,9 @@ public class PaymentService {
     private void publishPaymentCompletedEvent(Payment payment) {
         Order order = payment.getOrder();
 
+        String address1 = order.getAddress1();
+        String address2 = order.getAddress2();
+
         List<OrderItemInfo> orderItems = order.getOrderItems().stream()
             .map(item -> new OrderItemInfo(
                 item.getProduct().getId(),
@@ -222,7 +225,9 @@ public class PaymentService {
             .paymentId(payment.getId())
             .userId(order.getUser().getId())
             .orderId(order.getId())
+            .orderNumber(order.getOrderNumber())
             .totalAmount(payment.getPaymentAmount())
+            .address(address1 + " " + address2)
             .orderItems(orderItems)
             .completedAt(LocalDateTime.now())
             .build();

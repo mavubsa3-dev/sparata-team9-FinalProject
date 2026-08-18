@@ -10,6 +10,8 @@ public record PaymentCompletedEvent(
 	Long paymentId,
 	Long userId,
 	Long orderId,
+	String orderNumber,
+	String address,
 	Long totalAmount,
 	List<OrderItemInfo> orderItems,
 	LocalDateTime completedAt
