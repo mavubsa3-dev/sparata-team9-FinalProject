@@ -4,9 +4,9 @@ export const options = {
     scenarios: {
         constant_order_rate: {
             executor: 'constant-arrival-rate',
-            rate: 5,              // 초당 5건 주문 발생
-            timeUnit: '1s',
-            duration: '2m',        // 2분간 지속
+            rate: 1,
+            timeUnit: '2s',        // 2초 당 1건
+            duration: '4m',        // 2분간 지속
             preAllocatedVUs: 20,
             maxVUs: 50,
         },

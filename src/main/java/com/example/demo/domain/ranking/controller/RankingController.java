@@ -3,6 +3,7 @@ package com.example.demo.domain.ranking.controller;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class RankingController {
 
 	private final RankingService rankingService;
 	private final PaymentProducer paymentProducer;
+
+	// 테스트용
+	private static final AtomicLong orderIdSequence = new AtomicLong(System.currentTimeMillis());
 
 	@GetMapping
 	public ResponseEntity<List<GetProductRankingResponse>> getProductRanking(@RequestParam(defaultValue = "10") int count ){
@@ -60,11 +64,13 @@ public class RankingController {
 		@RequestParam(defaultValue = "false") boolean spreadUser) {
 		for (int i = 0; i < count; i++) {
 			long userId = spreadUser ? (i % 7) + 1 : 12L;
+			long orderId = orderIdSequence.getAndIncrement();
+
 			PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-				.paymentId((long) i)
+				.paymentId(orderId)
 				.userId(userId)
-				.orderId((long) i)
-				.orderNumber("TEST-ORDER-" + i)
+				.orderId(orderId)
+				.orderNumber("TEST-ORDER-" + orderId)
 				.totalAmount(10000L)
 				.address("테스트 주소")
 				.orderItems(List.of(new OrderItemInfo(1L, "테스트상품", 1)))
