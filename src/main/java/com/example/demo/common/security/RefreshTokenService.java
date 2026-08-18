@@ -23,7 +23,7 @@ public class RefreshTokenService {
 			key,
 			refreshToken,
 			Duration.ofMillis(expireMills)
-		);;
+		);
 	}
 
 	// 조회
