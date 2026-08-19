@@ -44,7 +44,7 @@ public class AdminController {
 	}
 
 	@GetMapping
-	public ResponseEntity<Page<GetProductFromAdminResponse>> getProduct(@AuthenticationPrincipal Long userId,
+	public ResponseEntity<Page<GetProductFromAdminResponse>> getProduct(
 		@RequestParam(required = false) String category,
 		@RequestParam(required = false) String productName,
 		@RequestParam(required = false) Integer minPrice,

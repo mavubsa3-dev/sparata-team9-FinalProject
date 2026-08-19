@@ -6,7 +6,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.domain.category.entity.Category;
@@ -20,7 +19,7 @@ import com.example.demo.domain.product.dto.response.UpdateProductResponse;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import com.example.demo.domain.product.repository.ProductRepository;
-import com.example.demo.domain.user.repository.UserRepository;
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,7 +29,7 @@ public class AdminProductService {
 
 	private final ProductRepository productRepository;
 	private final CategoryRepository categoryRepository;
-	private final UserRepository userRepository;
+
 
 	@Transactional
 	public CreateProductResponse createProduct(CreateProductRequest request){
