@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -121,7 +122,7 @@ public class OrderService {
         );
     }
 
-    @Scheduled(fixedDelay = 60 * 1000)
+    @Scheduled(fixedDelay = 5 * 1000)
     @Transactional
     public void cancelExpiredOrders() {
         LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);
@@ -136,6 +137,8 @@ public class OrderService {
             }
             order.cancel();
         }
+
+        log.info("[AutoCancel] 종료 - 처리건수={}, thread={}", expiredOrders.size(), Thread.currentThread().getName());
     }
 
     @Transactional(readOnly = true)

@@ -151,7 +151,7 @@ public class PaymentService {
      * settlement_date 유니크 제약 덕분에, 이미 그 날짜 정산이 있으면 갱신(update)하고
      * 없으면 새로 생성(insert)한다 — 재실행/중복 실행에도 안전하다(멱등).
      */
-    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "*/5 * * * * *", zone = "Asia/Seoul")
     @Transactional
     public void aggregateYesterdaySettlement() {
         LocalDate targetDate = LocalDate.now(KST).minusDays(1);
@@ -198,6 +198,7 @@ public class PaymentService {
         return GetSettlementResponse.from(settlement);
     }
 
+    @Transactional
     public GetSettlementResponse aggregateSettlementForAdmin(LocalDate settlementDate) {
         return GetSettlementResponse.from(aggregateSettlement(settlementDate));
     }
