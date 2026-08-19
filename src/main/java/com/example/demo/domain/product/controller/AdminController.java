@@ -37,10 +37,10 @@ public class AdminController {
 	private final AdminProductService adminProductService;
 
 	@PostMapping
-	public ResponseEntity<CreateProductResponse> createProduct(@AuthenticationPrincipal Long adminId, @Valid @RequestBody
+	public ResponseEntity<CreateProductResponse> createProduct(@Valid @RequestBody
 		CreateProductRequest request){
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(adminProductService.createProduct(adminId, request));
+		return ResponseEntity.status(HttpStatus.CREATED).body(adminProductService.createProduct(request));
 	}
 
 	@GetMapping
@@ -55,18 +55,18 @@ public class AdminController {
 		@PageableDefault(page = 0, size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable){
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(adminProductService.getProduct(userId, category, productName, minPrice, maxPrice, stock, status, pageable));
+			.body(adminProductService.getProduct(category, productName, minPrice, maxPrice, stock, status, pageable));
 	}
 
 	@PatchMapping("/{productId}")
-	public ResponseEntity<UpdateProductResponse> updateProduct(@AuthenticationPrincipal Long adminId, @PathVariable Long productId,
+	public ResponseEntity<UpdateProductResponse> updateProduct(@PathVariable Long productId,
 		@Valid @RequestBody UpdateProductRequest request){
 
-		return ResponseEntity.status(HttpStatus.OK).body(adminProductService.updateProduct(adminId, productId, request));
+		return ResponseEntity.status(HttpStatus.OK).body(adminProductService.updateProduct(productId, request));
 	}
 
 	@DeleteMapping("/{productId}")
 	public ResponseEntity<DeleteProductResponse> deleteProduct(@AuthenticationPrincipal Long adminId, @PathVariable Long productId){
-		return ResponseEntity.status(HttpStatus.OK).body(adminProductService.deleteProduct(adminId, productId));
+		return ResponseEntity.status(HttpStatus.OK).body(adminProductService.deleteProduct(productId));
 	}
 }

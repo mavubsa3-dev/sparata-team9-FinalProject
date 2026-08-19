@@ -20,15 +20,12 @@ import com.example.demo.domain.product.dto.response.UpdateProductResponse;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import com.example.demo.domain.product.repository.ProductRepository;
-import com.example.demo.domain.user.entity.User;
 import com.example.demo.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class AdminProductService {
 
 	private final ProductRepository productRepository;
@@ -36,10 +33,7 @@ public class AdminProductService {
 	private final UserRepository userRepository;
 
 	@Transactional
-	public CreateProductResponse createProduct(Long adminId, CreateProductRequest request){
-		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
-		);
+	public CreateProductResponse createProduct(CreateProductRequest request){
 
 		Category category = categoryRepository.findById(request.categoryId()).orElseThrow(
 			() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
@@ -55,31 +49,25 @@ public class AdminProductService {
 		);
 
 		Product savedProduct = productRepository.save(product);
-		log.info("[상품 생성] 생성된 상품 : {} , 카테고리 : {}, 생성한 관리자 : {} ", product.getName(), product.getCategory().getName(), admin.getName());
+
 
 		return CreateProductResponse.from(savedProduct);
 	}
 
 	@Transactional(readOnly = true)
 	public Page<GetProductFromAdminResponse> getProduct(
-		Long adminId, String category, String productName, Integer minPrice, Integer maxPrice, Integer stock, ProductStatus status, Pageable pageable){
-		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
-		);
+		String category, String productName, Integer minPrice, Integer maxPrice, Integer stock, ProductStatus status, Pageable pageable){
+
 
 		Specification<Product> spec = buildSpec(category, productName, minPrice, maxPrice, stock, status);
-
-		log.info("[상품 조회] 조회한 관리자 : {} ", admin.getName());
 
 		return productRepository.findAll(spec, pageable)
 			.map(GetProductFromAdminResponse::from);
 	}
 
 	@Transactional
-	public UpdateProductResponse updateProduct(Long adminId, Long productId, UpdateProductRequest request){
-		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
-		);
+	public UpdateProductResponse updateProduct(Long productId, UpdateProductRequest request){
+
 
 		Product product = productRepository.findByIdWithCategory(productId)
 			.orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -94,24 +82,19 @@ public class AdminProductService {
 
 		validAndUpdateProduct(product, request);
 
-		log.info("[상품 정보 업데이트] 업데이트 한 관리자 : {} ", admin.getName());
 
 		return UpdateProductResponse.from(product);
 	}
 
 	@CacheEvict(value = "Caffeine:product", key = "#productId")
 	@Transactional
-	public DeleteProductResponse deleteProduct(Long adminId, Long productId){
-		User admin = userRepository.findById(adminId).orElseThrow(
-			() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
-		);
+	public DeleteProductResponse deleteProduct(Long productId){
 
 		Product product = productRepository.findByIdWithCategory(productId)
 			.orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
 		product.updateStatus(ProductStatus.HIDDEN);
 
-		log.info("[상품 삭제] 삭제된 상품 카테고리 : {}, 상품 이름 : {}, 삭제한 관리자 : {} ", product.getCategory().getName(), product.getName(), admin.getName());
 
 		return DeleteProductResponse.from(product);
 	}

@@ -54,16 +54,11 @@ public class RankingController {
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
 	}
 
-	@GetMapping("/cache/stats")
-	public Map<String, Object> getCacheStats() {
-		return rankingService.getCacheStats();
-	}
-
 	@PostMapping("/test/publish-payment-event")
 	public void publishTestEvent(@RequestParam int count,
 		@RequestParam(defaultValue = "false") boolean spreadUser) {
 		for (int i = 0; i < count; i++) {
-			long userId = spreadUser ? (i % 7) + 1 : 12L;
+			long userId = spreadUser ? (i % 4) + 1 : 1L;
 			long orderId = orderIdSequence.getAndIncrement();
 
 			PaymentCompletedEvent event = PaymentCompletedEvent.builder()
