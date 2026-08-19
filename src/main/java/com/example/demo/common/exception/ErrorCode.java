@@ -24,6 +24,7 @@ public enum ErrorCode {
 	// 401 UNAUTHORIZED
 	UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", "로그인이 필요합니다."),
 	WEBHOOK_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "WEBHOOK_SIGNATURE_INVALID", "결제 알림을 보낸 곳이 신뢰할 수 있는 곳인지 확인할 수 없습니다."),
+	INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "INVALID_REFRESH_TOKEN", "유효하지 않은 리프레시 토큰입니다."),
 	// 403 FORBIDDEN
 	FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "접근 권한이 없습니다"),
 	ADDRESS_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ADDRESS_ACCESS_DENIED", "해당 배송지에 접근할 권한이 없습니다."),
@@ -49,7 +50,10 @@ public enum ErrorCode {
 	CATEGORY_HAS_PRODUCTS(HttpStatus.CONFLICT, "CATEGORY_HAS_PRODUCTS", "해당 카테고리에 속한 상품이 존재하여 삭제할 수 없습니다."),
 	DUPLICATE_CART_ITEM(HttpStatus.CONFLICT, "DUPLICATE_CART_ITEM", "이미 처리 중인 요청입니다. 다시 시도해주세요."),
 	EMAIL_DUPLICATE(HttpStatus.CONFLICT, "EMAIL_DUPLICATE", "이미 사용 중인 이메일입니다."),
-	PAYMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "PAYMENT_ALREADY_EXISTS", "이미 결제가 생성된 주문입니다.");
+	PAYMENT_ALREADY_EXISTS(HttpStatus.CONFLICT, "PAYMENT_ALREADY_EXISTS", "이미 결제가 생성된 주문입니다."),
+
+	// 500 INTERNAL_SERVER_ERROR
+	IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMAGE_UPLOAD_FAILED", "이미지 업로드에 실패했습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String code;

@@ -11,6 +11,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 
 @Component
 public class JwtUtil {
@@ -20,6 +21,10 @@ public class JwtUtil {
 
 	@Value("${jwt.access-token-expire}")
 	private long accessTokenExpire;
+
+	@Getter
+	@Value("${jwt.refresh-token-expire}")
+	private long refreshTokenExpire;
 
 	private SecretKey key;
 
@@ -38,6 +43,22 @@ public class JwtUtil {
 			.subject(String.valueOf(userId))
 			.claim("email", email)
 			.claim("role", role)
+			.claim("type", "access")
+			.issuedAt(now)
+			.expiration(expiry)
+			.signWith(key)
+			.compact();
+	}
+
+	// Refresh Token 발급
+	public String createRefreshToken(Long userId){
+
+		Date now = new Date();
+		Date expiry = new Date(now.getTime() + refreshTokenExpire);
+
+		return Jwts.builder()
+			.subject(String.valueOf(userId))
+			.claim("type", "refresh")
 			.issuedAt(now)
 			.expiration(expiry)
 			.signWith(key)
@@ -72,4 +93,5 @@ public class JwtUtil {
 			.parseSignedClaims(token)
 			.getPayload();
 	}
+
 }

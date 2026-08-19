@@ -18,7 +18,7 @@ import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 
-import com.example.demo.common.entity.kafka.event.PaymentCompletedEvent;
+import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 
 @Configuration
 public class KafkaConsumerConfig {
