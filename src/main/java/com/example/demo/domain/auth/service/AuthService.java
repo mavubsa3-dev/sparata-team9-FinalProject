@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.common.exception.CustomException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.security.JwtUtil;
+import com.example.demo.common.security.RefreshTokenService;
 import com.example.demo.domain.auth.dto.request.LoginRequest;
 import com.example.demo.domain.auth.dto.request.SignupRequest;
 import com.example.demo.domain.auth.dto.response.LoginResponse;
@@ -27,6 +28,7 @@ public class AuthService {
 	private final CartRepository cartRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final JwtUtil jwtUtil;
+	private final RefreshTokenService refreshTokenService;
 
 	@Transactional
 	public SignupResponse signUp(SignupRequest request){
@@ -57,7 +59,47 @@ public class AuthService {
 		}
 
 		String token = jwtUtil.createToken(user.getId(), user.getEmail(), user.getRole().name());
+		String refreshToken = jwtUtil.createRefreshToken(user.getId());
 
-		return new LoginResponse(token);
+		refreshTokenService.save(user.getId(), refreshToken, jwtUtil.getRefreshTokenExpire());
+
+		return new LoginResponse(token, refreshToken);
+	}
+
+	@Transactional(readOnly = true)
+	public LoginResponse reissue(String refreshToken) {
+
+		if (!jwtUtil.validateToken(refreshToken)) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+
+		String type = jwtUtil.parseClaims(refreshToken).get("type", String.class);
+		if (!"refresh".equals(type)) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+
+		Long userId = jwtUtil.getUserId(refreshToken);
+
+		String savedRefreshToken = refreshTokenService.findByUserId(userId);
+		if (savedRefreshToken == null || ! savedRefreshToken.equals(refreshToken)) {
+			throw new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+		}
+
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.USER_NOT_FOUND)
+		);
+
+
+		String newAccessToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getRole().name());
+		String newRefreshToken = jwtUtil.createRefreshToken(user.getId());
+
+		refreshTokenService.save(user.getId(), newRefreshToken, jwtUtil.getRefreshTokenExpire());
+
+		return new LoginResponse(newAccessToken, newRefreshToken);
+	}
+
+	@Transactional
+	public void logout(Long userId) {
+		refreshTokenService.deleteByUserId(userId);
 	}
 }
