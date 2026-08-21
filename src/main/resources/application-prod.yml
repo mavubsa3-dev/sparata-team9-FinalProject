@@ -1,0 +1,48 @@
+spring:
+  sql:
+    init:
+      mode: never
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/ShoppingDB
+    username: ${RDS_USER}
+    password: ${RDS_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+
+  data:
+    redis:
+      port: ${REDIS_PORT}
+      host: ${REDIS_HOST}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+  cloud:
+    aws:
+      s3:
+        bucket: team9-product-files
+
+management:
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    message: ${APP_MESSAGE}
+
+logging:
+  level:
+    root: INFO
