@@ -100,7 +100,7 @@ jobs:
             docker stop my-spring-app || true
             docker rm my-spring-app || true
          
-            docker run -d --name my-spring-app -p 8080:8080 $IMAGE_URI:$IMAGE_TAG
+            docker run -d --name api-server -p 8080:8080 $IMAGE_URI:$IMAGE_TAG
 
             docker image prune -f
     
