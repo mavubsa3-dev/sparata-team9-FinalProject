@@ -44,6 +44,7 @@ public enum ErrorCode {
 	PAYMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "PAYMENT_NOT_FOUND", "결제 내역을 찾을 수 없습니다."),
 	NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION_NOT_FOUND", "알림을 찾을 수 없습니다."),
 	PRODUCT_NOT_IN_RANKING(HttpStatus.NOT_FOUND, "PRODUCT_NOT_IN_RANKING", "해당 상품은 현재 랭킹에 존재하지 않습니다."),
+	SETTLEMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "SETTLEMENT_NOT_FOUND", "해당 날짜의 정산 내역을 찾을 수 없습니다."),
 
 	// 409 CONFLICT
 	CATEGORY_HAS_PRODUCTS(HttpStatus.CONFLICT, "CATEGORY_HAS_PRODUCTS", "해당 카테고리에 속한 상품이 존재하여 삭제할 수 없습니다."),
