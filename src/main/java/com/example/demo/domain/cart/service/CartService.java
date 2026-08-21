@@ -114,6 +114,18 @@ public class CartService {
     }
 
     @Transactional
+    public void deleteCartItem(Long userId, Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findByIdWithProduct(cartItemId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_ITEM_NOT_FOUND));
+
+        if (!cartItem.getUser().getId().equals(userId)) {
+            throw new CustomException(ErrorCode.CART_ITEM_ACCESS_DENIED);
+        }
+
+        cartItemRepository.delete(cartItem);
+    }
+
+    @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CART_NOT_FOUND));
