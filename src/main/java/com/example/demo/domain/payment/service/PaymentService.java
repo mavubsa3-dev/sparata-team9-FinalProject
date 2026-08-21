@@ -91,8 +91,6 @@ public class PaymentService {
             throw new CustomException(ErrorCode.PAYMENT_ALREADY_EXISTS);
         }
 
-        publishPaymentCompletedEvent(payment);
-
         return CreatePaymentResponse.from(payment);
     }
 
@@ -128,8 +126,25 @@ public class PaymentService {
 
     @Transactional
     public void cancelPaymentIfExists(Long orderId) {
+
         paymentRepository.findByOrderId(orderId)
-            .ifPresent(Payment::cancel);
+                .ifPresent(payment -> {
+
+                    // ★ 결제가 이미 완료됐다면 PortOne 실제 결제 취소
+                    if (payment.getStatus() == PaymentStatus.PAID) {
+                        portOneClient.cancelPayment(
+                                payment.getPortonePaymentId(),
+                                "주문 취소에 의한 결제 취소"
+                        );
+                    }
+
+                    // ★ DB 결제 상태 변경
+                    if (payment.getStatus() == PaymentStatus.PENDING
+                            || payment.getStatus() == PaymentStatus.PAID) {
+
+                        payment.cancel();
+                    }
+                });
     }
 
 
@@ -221,7 +236,7 @@ public class PaymentService {
         }
 
         payment.approve(portOneResponse.id(), LocalDateTime.now());
-        payment.getOrder().complete();
+        payment.getOrder().paid();
 
         publishPaymentCompletedEvent(payment);
     }
@@ -257,7 +272,7 @@ public class PaymentService {
         }
 
         payment.approve(portOneResponse.id(), LocalDateTime.now());
-        payment.getOrder().complete();
+        payment.getOrder().paid();
 
         publishPaymentCompletedEvent(payment);
     }

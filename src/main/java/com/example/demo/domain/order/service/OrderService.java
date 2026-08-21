@@ -161,8 +161,12 @@ public class OrderService {
     }
 
     private void validateCancelable(Order order) {
-        if (!order.isOrdered()) {
-            throw new CustomException(ErrorCode.ORDER_CANNOT_CANCEL);
+
+        if (!order.isCancelable()) {
+
+            throw new CustomException(
+                    ErrorCode.ORDER_CANNOT_CANCEL
+            );
         }
     }
 

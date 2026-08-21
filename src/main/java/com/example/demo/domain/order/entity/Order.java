@@ -88,11 +88,20 @@ public class Order extends BaseTimeEntity {
         this.canceledAt = LocalDateTime.now();
     }
 
+    public void paid() {
+        this.status = OrderStatus.PAID;
+    }
+
     public void complete() {
         this.status = OrderStatus.COMPLETED;
     }
 
     public boolean isOrdered() {
         return this.status == OrderStatus.ORDERED;
+    }
+
+    public boolean isCancelable() {
+        return this.status == OrderStatus.ORDERED
+                || this.status == OrderStatus.PAID;
     }
 }
