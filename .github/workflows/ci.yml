@@ -99,8 +99,8 @@ jobs:
 
             docker stop api-server || true
             docker rm api-server || true
-         
-            docker run -d --name api-server -p 8080:8080 $IMAGE_URI:$IMAGE_TAG
+            
+            docker run -d --name api-server -p 8080:8080 --network kafka_kafka-net --env-file /home/ec2-user/.env $IMAGE_URI:$IMAGE_TAG
 
             docker image prune -f
     
