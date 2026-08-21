@@ -132,20 +132,6 @@ public class PaymentService {
             .ifPresent(Payment::cancel);
     }
 
-    /**
-     * 매일 00:00(KST)에 실행되어 "어제" 하루치 매출을 집계해서 저장한다.
-     * settlement_date 유니크 제약 덕분에, 이미 그 날짜 정산이 있으면 갱신(update)하고
-     * 없으면 새로 생성(insert)한다 — 재실행/중복 실행에도 안전하다(멱등).
-     */
-    @Scheduled(cron = "*/5 * * * * *", zone = "Asia/Seoul")
-    @Transactional
-    public void aggregateYesterdaySettlement() {
-        LocalDate targetDate = LocalDate.now(KST).minusDays(1);
-        Settlement settlement = aggregateSettlement(targetDate);
-
-        log.info("[Settlement] date={}, totalAmount={}, orderCount={}",
-                settlement.getSettlementDate(), settlement.getTotalAmount(), settlement.getOrderCount());
-    }
 
     /**
      * 특정 날짜의 매출을 집계해서 저장한다(upsert).
