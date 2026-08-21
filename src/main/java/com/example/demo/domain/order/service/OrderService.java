@@ -18,7 +18,7 @@ import com.example.demo.domain.payment.service.PaymentService;
 import com.example.demo.domain.product.entity.Product;
 import com.example.demo.domain.product.entity.ProductStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Scheduled;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -121,21 +122,26 @@ public class OrderService {
         );
     }
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000)
-    @Transactional
-    public void cancelExpiredOrders() {
-        LocalDateTime expiredBefore = LocalDateTime.now().minusHours(1);
-        List<Order> expiredOrders = orderRepository.findAllByStatusAndCreatedAtBefore(
+    @Transactional(readOnly = true)
+    public List<Long> findExpiredOrderIds(LocalDateTime expiredBefore) {
+        return orderRepository.findIdsByStatusAndCreatedAtBefore(
                 OrderStatus.ORDERED, expiredBefore
         );
+    }
 
+    @Transactional
+    public void cancelExpiredOrder(Long orderId) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
-        for (Order order : expiredOrders) {
-            for (OrderItem orderItem : order.getOrderItems()) {
-                orderItem.getProduct().increaseStock(orderItem.getQuantity());
-            }
-            order.cancel();
+        if (!order.isOrdered()) {
+            return; // 이미 결제 완료/취소된 주문은 skip
         }
+
+        for (OrderItem orderItem : order.getOrderItems()) {
+            orderItem.getProduct().increaseStock(orderItem.getQuantity());
+        }
+        order.cancel();
     }
 
     @Transactional(readOnly = true)

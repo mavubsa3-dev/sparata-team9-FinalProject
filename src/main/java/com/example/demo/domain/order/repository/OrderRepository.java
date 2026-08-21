@@ -2,7 +2,9 @@ package com.example.demo.domain.order.repository;
 
 import com.example.demo.domain.order.entity.Order;
 import com.example.demo.domain.order.entity.OrderStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,4 +38,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("status") OrderStatus status,
             @Param("dateTime") LocalDateTime dateTime
     );
+
+    @Query("""
+            SELECT o.id FROM Order o
+            WHERE o.status = :status AND o.createdAt < :before
+            """)
+    List<Long> findIdsByStatusAndCreatedAtBefore(
+            @Param("status") OrderStatus status,
+            @Param("before") LocalDateTime before
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Order o WHERE o.id = :id")
+    Optional<Order> findByIdForUpdate(@Param("id") Long id);
 }
