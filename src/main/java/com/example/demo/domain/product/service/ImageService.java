@@ -20,7 +20,11 @@ public class ImageService {
     private String bucket;
 
     public String uploadImage(MultipartFile file) {
-        String key = "products/" + UUID.randomUUID() + "-" + file.getOriginalFilename();
+        String originalFilename = file.getOriginalFilename();
+        String safeFilename = originalFilename != null
+                ? originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_")
+                : "file";
+        String key = "products/" + UUID.randomUUID() + "-" + safeFilename;
 
         try {
             s3Template.upload(bucket, key, file.getInputStream());
