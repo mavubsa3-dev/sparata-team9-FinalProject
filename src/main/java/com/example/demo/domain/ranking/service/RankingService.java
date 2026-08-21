@@ -39,23 +39,6 @@ public class RankingService {
 	private final AtomicLong cacheMissCount = new AtomicLong(0);
 	private final AtomicLong dbQueryCount = new AtomicLong(0);
 
-	public void increaseScore(String productInfo, int quantity){
-
-		LocalDate currentDate = LocalDate.now();
-
-		String key = PRODUCT_RANKING_KEY + currentDate;
-		String idsKey = RANKING_IDS_KEY + currentDate;
-
-		stringRedisTemplate.opsForZSet()
-			.incrementScore(key, productInfo, quantity);
-
-		String productId = productInfo.split(":")[0];
-		stringRedisTemplate.opsForSet().add(idsKey, productId);
-
-		stringRedisTemplate.expire(idsKey, Duration.ofDays(8));
-		stringRedisTemplate.expire(key, Duration.ofDays(8));
-	}
-
 	// 상위 N개 조회
 	public List<GetProductRankingResponse> findProductTopNInToday(int count){
 
@@ -214,19 +197,4 @@ public class RankingService {
 		return new GetProductRankingResponse(id, title, score);
 	}
 
-	public Map<String, Object> getCacheStats() {
-		long hits = cacheHitCount.get();
-		long misses = cacheMissCount.get();
-		long dbQueries = dbQueryCount.get();
-		long total = hits + misses;
-		double hitRate = total > 0 ? (double) hits / total * 100 : 0;
-
-		return Map.of(
-			"cacheHit",  hits,
-			"cacheMiss", misses,
-			"dbQuery",   dbQueries,
-			"total",     total,
-			"hitRate",   String.format("%.4f%%", hitRate)
-		);
-	}
 }

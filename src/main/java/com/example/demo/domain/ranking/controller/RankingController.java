@@ -2,7 +2,6 @@ package com.example.demo.domain.ranking.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.springframework.http.HttpStatus;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 public class RankingController {
 
 	private final RankingService rankingService;
-	private final PaymentProducer paymentProducer;
 
 	// 테스트용
 	private static final AtomicLong orderIdSequence = new AtomicLong(System.currentTimeMillis());
@@ -54,30 +52,4 @@ public class RankingController {
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
 	}
 
-	@GetMapping("/cache/stats")
-	public Map<String, Object> getCacheStats() {
-		return rankingService.getCacheStats();
-	}
-
-	@PostMapping("/test/publish-payment-event")
-	public void publishTestEvent(@RequestParam int count,
-		@RequestParam(defaultValue = "false") boolean spreadUser) {
-		for (int i = 0; i < count; i++) {
-			long userId = spreadUser ? (i % 7) + 1 : 12L;
-			long orderId = orderIdSequence.getAndIncrement();
-
-			PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-				.paymentId(orderId)
-				.userId(userId)
-				.orderId(orderId)
-				.orderNumber("TEST-ORDER-" + orderId)
-				.totalAmount(10000L)
-				.address("테스트 주소")
-				.orderItems(List.of(new OrderItemInfo(1L, "테스트상품", 1)))
-				.completedAt(LocalDateTime.now())
-				.build();
-
-			paymentProducer.send(event);
-		}
-	}
 }

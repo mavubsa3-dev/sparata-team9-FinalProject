@@ -41,8 +41,6 @@ public class CategoryService {
 		Category category = new Category(request.name(), admin);
 		Category savedCategory = categoryRepository.save(category);
 
-		log.info("생성된 카테고리 : {}, 생성한 관리자 : {} ", request.name(), admin.getName());
-
 		GetCategoryResponse response = GetCategoryResponse.from(savedCategory);
 		try {
 			categoryCacheService.saveCategoryCache(savedCategory.getId(), response);
@@ -103,7 +101,6 @@ public class CategoryService {
 		);
 
 		category.updateName(request.name(), admin);
-		log.info("변경된 카테고리 이름 : {} , 변경한 관리자 : {} ", request.name(), admin.getName());
 
 		try {
 			categoryCacheService.deleteCategoryCache(categoryId);
@@ -115,11 +112,8 @@ public class CategoryService {
 	}
 
 	@Transactional
-	public DeleteCategoryResponse deleteCategory(Long categoryId, Long adminId) {
+	public DeleteCategoryResponse deleteCategory(Long categoryId) {
 
-		User admin = userRepository.findById(adminId).orElseThrow(
-				() -> new CustomException(ErrorCode.ADMIN_NOT_FOUND)
-		);
 
 		Category category = categoryRepository.findById(categoryId).orElseThrow(
 				() -> new CustomException(ErrorCode.CATEGORY_NOT_FOUND)
@@ -131,8 +125,6 @@ public class CategoryService {
 		}
 
 		categoryRepository.delete(category);
-
-		log.info("삭제된 카테고리 : {}, 삭제한 관리자 : {} ", category.getName(), admin.getName());
 
 		try {
 			categoryCacheService.deleteCategoryCache(categoryId);
