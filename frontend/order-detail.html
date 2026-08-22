@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>주문 상세 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container" style="max-width: 760px;">
+      <nav class="breadcrumb">
+        <a href="orders.html">주문내역</a><span>›</span><span>주문 상세</span>
+      </nav>
+
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" style="font-size: var(--fs-xl);" data-order-number>주문번호</h1>
+          <p class="page-subtitle" data-order-date></p>
+        </div>
+        <span data-order-status></span>
+      </div>
+
+      <div class="card">
+        <div class="card__title">배송지 정보</div>
+        <p class="text-sub mt-2" data-order-address style="font-size: var(--fs-sm); line-height:1.8;"></p>
+      </div>
+
+      <div class="card">
+        <div class="card__title">주문 상품</div>
+        <div data-order-items class="mt-4"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size: var(--fs-lg);">
+          <span>총 상품금액</span>
+          <span data-order-total>0원</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap: var(--space-3);">
+        <a href="orders.html" class="btn btn-outline btn-block">목록으로</a>
+        <button type="button" class="btn btn-danger btn-block" data-cancel-btn>주문 취소</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const main = document.querySelector(".page-main .container");
+    const id = Number(new URLSearchParams(location.search).get("id"));
+
+    if (!isLoggedIn()) {
+      main.innerHTML = `<p class="text-faint">로그인이 필요합니다. <a href="login.html">로그인하러 가기</a></p>`;
+      return;
+    }
+
+    let order;
+    try {
+      order = await Api.getOrder(id);
+    } catch (e) {
+      main.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "주문을 찾을 수 없습니다.")}</p>`;
+      return;
+    }
+
+    const label = ORDER_STATUS_LABEL[order.status] || { text: order.status, cls: "badge-neutral" };
+
+    document.querySelector("[data-order-number]").textContent = order.orderNumber;
+    document.querySelector("[data-order-date]").textContent = formatDate(order.createdAt);
+    document.querySelector("[data-order-status]").innerHTML = `<span class="badge ${label.cls}">${label.text}</span>`;
+    document.querySelector("[data-order-address]").innerHTML = order.recipientName
+      ? `${order.recipientName} · ${order.recipientPhone}<br />(${order.zipCode}) ${order.address1} ${order.address2 || ""}`
+      : `<span class="text-faint">아직 배송지가 지정되지 않았습니다.</span>`;
+
+    document.querySelector("[data-order-items]").innerHTML = order.orderItems
+      .map(
+        (item) => `
+        <div style="display:flex; justify-content:space-between; padding: var(--space-2) 0; font-size: var(--fs-sm);">
+          <span>${item.productName} × ${item.quantity}</span>
+          <span style="font-weight:700;">${formatPrice(item.lineAmount)}</span>
+        </div>`
+      )
+      .join("");
+
+    document.querySelector("[data-order-total]").textContent = formatPrice(order.totalProductAmount);
+
+    const cancelBtn = document.querySelector("[data-cancel-btn]");
+    if (order.status !== "ORDERED") {
+      cancelBtn.disabled = true;
+      cancelBtn.textContent = "취소할 수 없는 주문";
+    } else {
+      cancelBtn.addEventListener("click", async () => {
+        cancelBtn.disabled = true;
+        try {
+          await Api.cancelOrder(order.orderId);
+          showToast("주문이 취소되었습니다.");
+          setTimeout(() => location.reload(), 500);
+        } catch (err) {
+          showToast(apiErrorMessage(err, "주문 취소에 실패했습니다."));
+          cancelBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>
+</body>
+</html>
