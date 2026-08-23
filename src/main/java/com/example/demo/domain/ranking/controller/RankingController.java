@@ -31,6 +31,7 @@ public class RankingController {
 
 	// 테스트용
 	private static final AtomicLong orderIdSequence = new AtomicLong(System.currentTimeMillis());
+	private final PaymentProducer paymentProducer;
 
 	@GetMapping
 	public ResponseEntity<List<GetProductRankingResponse>> getProductRanking(@RequestParam(defaultValue = "10") int count ){
@@ -50,6 +51,29 @@ public class RankingController {
 	@GetMapping("/week/{productId}")
 	public ResponseEntity<GetProductInfoResponse> getProductInWeekRanking(@PathVariable Long productId){
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
+	}
+
+	@PostMapping("/test/publish-payment-event")
+	public void publishTestEvent(@RequestParam int count,
+		@RequestParam(defaultValue = "false") boolean spreadUser) {
+		for (int i = 0; i < count; i++) {
+			long userId = spreadUser ? (i % 7) + 1 : 12L;
+			long orderId = orderIdSequence.getAndIncrement();
+
+
+			PaymentCompletedEvent event = PaymentCompletedEvent.builder()
+				.paymentId(orderId)
+				.userId(userId)
+				.orderId(orderId)
+				.orderNumber("TEST-ORDER-" + orderId)
+				.totalAmount(10000L)
+				.address("테스트 주소")
+				.orderItems(List.of(new OrderItemInfo(1L, "테스트상품", 1)))
+				.completedAt(LocalDateTime.now())
+				.build();
+
+			paymentProducer.send(event);
+		}
 	}
 
 }

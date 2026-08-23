@@ -5,8 +5,8 @@ export const options = {
         constant_order_rate: {
             executor: 'constant-arrival-rate',
             rate: 1,
-            timeUnit: '2s',        // 2초 당 1건
-            duration: '4m',        // 2분간 지속
+            timeUnit: '1s',        // 2초 당 1건
+            duration: '2m',        // 2분간 지속
             preAllocatedVUs: 20,
             maxVUs: 50,
         },
