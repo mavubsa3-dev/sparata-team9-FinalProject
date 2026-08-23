@@ -131,9 +131,6 @@ const Api = {
   getAdminPayments: () => apiFetch("/admin/payments"),
   getAdminPayment: (id) => apiFetch(`/admin/payments/${id}`),
 
-  134번째 줄부터 마지막 줄까지 넣으시면 될 거 같아요
-
-
   // 상품 이미지 업로드 (multipart/form-data라 apiFetch를 쓰지 않고 별도 처리)
   uploadProductImage: async (file, _isRetry = false) => {
     const formData = new FormData();
