@@ -8,13 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.example.demo.common.config.kafka.event.OrderItemInfo;
-import com.example.demo.common.config.kafka.event.PaymentCompletedEvent;
 import com.example.demo.domain.payment.producer.PaymentProducer;
 import com.example.demo.domain.ranking.dto.response.GetProductInfoResponse;
 import com.example.demo.domain.ranking.dto.response.GetProductRankingResponse;
@@ -28,10 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class RankingController {
 
 	private final RankingService rankingService;
-
-	// 테스트용
-	private static final AtomicLong orderIdSequence = new AtomicLong(System.currentTimeMillis());
-	private final PaymentProducer paymentProducer;
 
 	@GetMapping
 	public ResponseEntity<List<GetProductRankingResponse>> getProductRanking(@RequestParam(defaultValue = "10") int count ){
@@ -51,29 +43,6 @@ public class RankingController {
 	@GetMapping("/week/{productId}")
 	public ResponseEntity<GetProductInfoResponse> getProductInWeekRanking(@PathVariable Long productId){
 		return ResponseEntity.status(HttpStatus.OK).body(rankingService.getProductInWeekRanking(productId));
-	}
-
-	@PostMapping("/test/publish-payment-event")
-	public void publishTestEvent(@RequestParam int count,
-		@RequestParam(defaultValue = "false") boolean spreadUser) {
-		for (int i = 0; i < count; i++) {
-			long userId = spreadUser ? (i % 7) + 1 : 12L;
-			long orderId = orderIdSequence.getAndIncrement();
-
-
-			PaymentCompletedEvent event = PaymentCompletedEvent.builder()
-				.paymentId(orderId)
-				.userId(userId)
-				.orderId(orderId)
-				.orderNumber("TEST-ORDER-" + orderId)
-				.totalAmount(10000L)
-				.address("테스트 주소")
-				.orderItems(List.of(new OrderItemInfo(1L, "테스트상품", 1)))
-				.completedAt(LocalDateTime.now())
-				.build();
-
-			paymentProducer.send(event);
-		}
 	}
 
 }
