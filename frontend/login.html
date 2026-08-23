@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>로그인 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+    </div>
+  </header>
+
+  <div class="auth-shell">
+    <div class="auth-card">
+      <div class="auth-card__logo">9신사</div>
+      <form data-login-form novalidate>
+        <div class="field">
+          <label for="email">이메일</label>
+          <input class="input" type="email" id="email" placeholder="you@example.com" required />
+          <span class="error">이메일 형식이 올바르지 않습니다.</span>
+        </div>
+        <div class="field">
+          <label for="password">비밀번호</label>
+          <input class="input" type="password" id="password" placeholder="비밀번호" required />
+          <span class="error">비밀번호를 입력해주세요.</span>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">로그인</button>
+      </form>
+      <p class="auth-card__footer">아직 계정이 없으신가요? <a href="signup.html">회원가입</a></p>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.querySelector("[data-login-form]").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.querySelector("#email").value;
+    const password = document.querySelector("#password").value;
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+
+    submitBtn.disabled = true;
+    try {
+      const { accessToken, refreshToken } = await Api.login({ email, password });
+      setAuthTokens(accessToken, refreshToken);
+      showToast("로그인 되었습니다.");
+      setTimeout(() => (location.href = "index.html"), 400);
+    } catch (err) {
+      showToast(apiErrorMessage(err, "로그인에 실패했습니다."));
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

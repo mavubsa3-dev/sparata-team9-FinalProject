@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>주문/결제 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+<script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container" style="max-width: 760px;">
+      <div class="page-header">
+        <h1 class="page-title">주문/결제</h1>
+      </div>
+
+      <div class="notice-banner" data-portone-notice hidden>
+        <span>⚠️</span>
+        <span>이 서버에는 PortOne 결제 설정(storeId/channelKey)이 아직 등록되지 않았습니다. 주문·결제 레코드는 실제로 생성되지만, 카드/간편결제 승인창은 뜨지 않습니다.</span>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">주문 상품</span>
+        </div>
+        <div data-order-items></div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">배송지</span>
+          <button type="button" class="btn btn-ghost btn-sm" data-add-address-btn>+ 새 배송지 추가</button>
+        </div>
+        <div data-address-list></div>
+      </div>
+
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">결제 수단</span>
+        </div>
+        <div class="checkbox-row" style="padding: var(--space-3); border:1px solid var(--color-border-strong); border-radius: var(--radius-md);">
+          <input type="radio" name="pay-method" id="pay-portone" checked />
+          <label for="pay-portone" style="flex:1;">PortOne 간편결제</label>
+          <select class="select" data-pay-method-select style="width:auto; height:36px;">
+            <option value="CARD">카드</option>
+            <option value="EASY_PAY">간편결제</option>
+            <option value="VIRTUAL_ACCOUNT">가상계좌</option>
+            <option value="TRANSFER">계좌이체</option>
+          </select>
+        </div>
+        <div class="checkbox-row" data-easypay-provider-row hidden style="padding: 0 var(--space-3); margin-top: var(--space-2);">
+          <label for="easypay-provider-select" style="flex:1;">간편결제 수단</label>
+          <select class="select" id="easypay-provider-select" data-easypay-provider-select style="width:auto; height:36px;">
+            <option value="KAKAOPAY">카카오페이</option>
+            <option value="NAVERPAY">네이버페이</option>
+            <option value="SAMSUNGPAY">삼성페이</option>
+            <option value="TOSSPAY">토스페이</option>
+            <option value="PAYCO">페이코</option>
+            <option value="LPAY">L페이</option>
+            <option value="SSGPAY">SSG페이</option>
+            <option value="APPLEPAY">애플페이</option>
+          </select>
+        </div>
+        <p class="text-faint mt-2" style="font-size: var(--fs-xs);">※ 테스트 연동 채널이면 실제 결제창에서 테스트 카드/계좌 정보로 진행해주세요.</p>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; font-size: var(--fs-sm);">
+          <span class="text-sub">상품금액</span>
+          <span data-summary-amount>0원</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top: var(--space-2); font-size: var(--fs-sm);">
+          <span class="text-sub">배송비</span>
+          <span>무료</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-border); font-weight:800; font-size: var(--fs-lg);">
+          <span>최종 결제금액</span>
+          <span data-summary-amount-2>0원</span>
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-accent btn-block" style="height:52px; font-size: var(--fs-md);" data-pay-btn>
+        <span data-summary-amount-3>0원</span> 결제하기
+      </button>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<div class="modal-overlay" data-address-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">새 배송지 추가</span>
+      <button type="button" class="modal__close" data-modal-close>×</button>
+    </div>
+    <form data-address-form>
+      <div class="field-row">
+        <div class="field">
+          <label for="alias">배송지 별칭</label>
+          <input class="input" type="text" id="alias" placeholder="집, 회사 등" required />
+        </div>
+        <div class="field">
+          <label for="name">수령인</label>
+          <input class="input" type="text" id="name" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="phoneNumber">수령인 휴대폰 번호</label>
+        <input class="input" type="tel" id="phoneNumber" placeholder="010-1234-5678" required />
+      </div>
+      <div class="field">
+        <label for="zipCode">우편번호</label>
+        <input class="input" type="text" id="zipCode" placeholder="5자리 숫자" required />
+      </div>
+      <div class="field">
+        <label for="basicAddress">기본 주소</label>
+        <input class="input" type="text" id="basicAddress" required />
+      </div>
+      <div class="field">
+        <label for="detailAddress">상세 주소</label>
+        <input class="input" type="text" id="detailAddress" />
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn-outline" data-modal-close>취소</button>
+        <button type="submit" class="btn btn-primary">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  // crypto.randomUUID()는 보안 컨텍스트(HTTPS/localhost)에서만 동작한다.
+  // S3 정적 호스팅처럼 순수 http 주소에서도 결제ID를 만들 수 있도록 폴백을 둔다.
+  function generateShortId() {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+    }
+    let id = "";
+    for (let i = 0; i < 12; i++) id += Math.floor(Math.random() * 16).toString(16);
+    return id;
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    const main = document.querySelector(".page-main .container");
+
+    if (!isLoggedIn()) {
+      main.innerHTML = `<p class="text-faint">로그인이 필요합니다. <a href="login.html">로그인하러 가기</a></p>`;
+      return;
+    }
+
+    let cart, addresses, portoneConfig, me;
+    try {
+      [cart, addresses, portoneConfig, me] = await Promise.all([
+        Api.getCart(),
+        Api.getAddresses(),
+        Api.getPortoneConfig(),
+        Api.getMe(),
+      ]);
+    } catch (e) {
+      main.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "주문 정보를 불러오지 못했습니다.")}</p>`;
+      return;
+    }
+
+    if (cart.items.length === 0) {
+      main.innerHTML = `<p class="text-faint">장바구니가 비어있습니다. <a href="index.html">쇼핑하러 가기</a></p>`;
+      return;
+    }
+
+    if (!portoneConfig.storeId || !portoneConfig.channelKey) {
+      document.querySelector("[data-portone-notice]").hidden = false;
+    }
+
+    const itemsEl = document.querySelector("[data-order-items]");
+    itemsEl.innerHTML = cart.items
+      .map(
+        (item) => `
+        <div style="display:flex; align-items:center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px solid var(--color-border);">
+          <div class="product-card__thumb" data-thumb="${item.productName}" data-thumb-url="${item.thumbnailUrl || ""}" style="width:56px; height:56px; flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="font-weight:700; font-size: var(--fs-sm);">${item.productName}</div>
+            <div class="text-faint" style="font-size: var(--fs-xs);">수량 ${item.quantity}개</div>
+          </div>
+          <div style="font-weight:700;">${formatPrice(item.lineAmount)}</div>
+        </div>`
+      )
+      .join("");
+    itemsEl.querySelectorAll("[data-thumb]").forEach((el) => el.appendChild(renderThumb(el.dataset.thumb, el.dataset.thumbUrl || "")));
+
+    const addressEl = document.querySelector("[data-address-list]");
+    const payBtn = document.querySelector("[data-pay-btn]");
+
+    function renderAddressList(selectedId) {
+      if (addresses.length === 0) {
+        addressEl.innerHTML = `<p class="text-faint">등록된 배송지가 없습니다. 위 "+ 새 배송지 추가"로 등록해주세요.</p>`;
+        payBtn.disabled = true;
+        return;
+      }
+      payBtn.disabled = false;
+      const activeId = selectedId ?? (addresses.find((a) => a.isDefault) || addresses[0]).id;
+      addressEl.innerHTML = addresses
+        .map((addr, i) => {
+          const checked = addr.id === activeId;
+          return `
+        <div class="checkbox-row" style="padding: var(--space-3); border:1px solid ${
+          checked ? "var(--color-black)" : "var(--color-border)"
+        }; border-radius: var(--radius-md); margin-top: ${i === 0 ? "0" : "var(--space-2)"};">
+          <input type="radio" name="address" id="addr-${addr.id}" value="${addr.id}" ${checked ? "checked" : ""} />
+          <label for="addr-${addr.id}" style="flex:1;">
+            <strong>${addr.alias}</strong> ${addr.isDefault ? '<span class="badge badge-neutral">기본배송지</span>' : ""}<br />
+            <span class="text-sub" style="font-size: var(--fs-sm);">${addr.name} · ${addr.phoneNumber}</span><br />
+            <span class="text-faint" style="font-size: var(--fs-sm);">(${addr.zipCode}) ${addr.basicAddress} ${addr.detailAddress || ""}</span>
+          </label>
+        </div>`;
+        })
+        .join("");
+    }
+
+    renderAddressList();
+
+    const addressModal = document.querySelector("[data-address-modal]");
+    const addressForm = document.querySelector("[data-address-form]");
+    const openAddressModal = () => (addressModal.hidden = false);
+    const closeAddressModal = () => {
+      addressModal.hidden = true;
+      addressForm.reset();
+    };
+
+    document.querySelector("[data-add-address-btn]").addEventListener("click", openAddressModal);
+    document.querySelectorAll("[data-modal-close]").forEach((btn) => btn.addEventListener("click", closeAddressModal));
+
+    addressForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = {
+        alias: addressForm.querySelector("#alias").value,
+        name: addressForm.querySelector("#name").value,
+        phoneNumber: addressForm.querySelector("#phoneNumber").value,
+        zipCode: addressForm.querySelector("#zipCode").value,
+        basicAddress: addressForm.querySelector("#basicAddress").value,
+        detailAddress: addressForm.querySelector("#detailAddress").value,
+      };
+      const submitBtn = addressForm.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      try {
+        const created = await Api.createAddress(body);
+        addresses = await Api.getAddresses();
+        renderAddressList(created.id);
+        showToast("배송지가 추가되었습니다.");
+        closeAddressModal();
+      } catch (err) {
+        showToast(apiErrorMessage(err, "배송지 저장에 실패했습니다."));
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    const total = cart.totalAmount;
+    document.querySelector("[data-summary-amount]").textContent = formatPrice(total);
+    document.querySelector("[data-summary-amount-2]").textContent = formatPrice(total);
+    document.querySelector("[data-summary-amount-3]").textContent = formatPrice(total);
+
+    const portoneReady = !!(portoneConfig.storeId && portoneConfig.channelKey);
+
+    const payMethodSelect = document.querySelector("[data-pay-method-select]");
+    const easyPayProviderRow = document.querySelector("[data-easypay-provider-row]");
+    const toggleEasyPayProviderRow = () => {
+      easyPayProviderRow.hidden = payMethodSelect.value !== "EASY_PAY";
+    };
+    payMethodSelect.addEventListener("change", toggleEasyPayProviderRow);
+    toggleEasyPayProviderRow();
+
+    // 결제창 호출이 실패(파라미터 오류 등)해도 주문 생성 시점에 장바구니가 이미 비워지므로,
+    // 재시도 시 주문/결제를 다시 만들지 않고 기존 것을 재사용한다.
+    let currentOrder = null;
+    let currentPayment = null;
+
+    document.querySelector("[data-pay-btn]").addEventListener("click", async (e) => {
+      const selected = document.querySelector('input[name="address"]:checked');
+      if (!selected) {
+        showToast("배송지를 선택해주세요.");
+        return;
+      }
+      const addressAtCheckout = addresses.find((a) => a.id === Number(selected.value));
+      const addressId = Number(selected.value);
+      const btn = e.currentTarget;
+      btn.disabled = true;
+
+      try {
+        if (!currentOrder) {
+          currentOrder = await Api.createOrder({ cartItemIds: cart.items.map((i) => i.cartItemId) });
+        }
+        await Api.setOrderAddress(currentOrder.orderId, { addressId });
+        if (!currentPayment) {
+          currentPayment = await Api.createPayment({ orderId: currentOrder.orderId, addressId });
+        }
+      } catch (err) {
+        showToast(apiErrorMessage(err, "주문 생성에 실패했습니다."));
+        btn.disabled = false;
+        return;
+      }
+
+      const order = currentOrder;
+      const payment = currentPayment;
+
+      if (!portoneReady) {
+        showToast("주문이 생성되었습니다. (PortOne 설정 없이 결제 대기 상태로 남습니다)");
+        setTimeout(() => (location.href = `order-detail.html?id=${order.orderId}`), 500);
+        return;
+      }
+
+      // 백엔드 webhook 매칭용 정규식은 `^pay(\d+)-`만 요구하지만, 이니시스 oid는 최대 40자라
+      // UUID를 통째로 붙이면 41자가 되어 넘친다. 짧은 랜덤 suffix로 대체한다.
+      const portonePaymentId = `pay${payment.paymentId}-${generateShortId()}`;
+      const payMethod = payMethodSelect.value;
+
+      const paymentRequest = {
+        storeId: portoneConfig.storeId,
+        channelKey: portoneConfig.channelKey,
+        paymentId: portonePaymentId,
+        orderName: cart.items.length > 1 ? `${cart.items[0].productName} 외 ${cart.items.length - 1}건` : cart.items[0].productName,
+        totalAmount: cart.totalAmount,
+        currency: "CURRENCY_KRW",
+        payMethod,
+        customer: {
+          fullName: addressAtCheckout ? addressAtCheckout.name : undefined,
+          phoneNumber: addressAtCheckout ? addressAtCheckout.phoneNumber : undefined,
+          email: me.email,
+        },
+      };
+
+      if (payMethod === "EASY_PAY") {
+        paymentRequest.easyPay = {
+          easyPayProvider: document.querySelector("[data-easypay-provider-select]").value,
+        };
+      } else if (payMethod === "VIRTUAL_ACCOUNT") {
+        paymentRequest.virtualAccount = {
+          accountExpiry: { validHours: 24 },
+        };
+      }
+
+      let response;
+      try {
+        response = await PortOne.requestPayment(paymentRequest);
+      } catch (err) {
+        showToast("결제창을 여는 데 실패했습니다: " + apiErrorMessage(err, "알 수 없는 오류"));
+        btn.disabled = false;
+        return;
+      }
+
+      if (response.code) {
+        // 사용자가 결제창을 닫거나 결제에 실패한 경우. 주문/결제 레코드는 결제대기 상태로 남는다.
+        showToast(`결제가 진행되지 않았습니다: ${response.message}`);
+        btn.disabled = false;
+        return;
+      }
+
+      try {
+        await Api.confirmPayment(payment.paymentId, { portonePaymentId: response.paymentId });
+        showToast("결제가 완료되었습니다.");
+        setTimeout(() => (location.href = `order-detail.html?id=${order.orderId}`), 500);
+      } catch (err) {
+        showToast(apiErrorMessage(err, "결제 승인 처리에 실패했습니다."));
+        btn.disabled = false;
+      }
+    });
+  });
+</script>
+</body>
+</html>

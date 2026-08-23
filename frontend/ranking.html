@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>인기 상품 랭킹 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html" class="is-active">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <a href="cart.html" class="icon-link">
+          🛒 장바구니
+          <span class="cart-badge" data-cart-badge hidden>0</span>
+        </a>
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container" style="max-width: 720px;">
+      <div class="page-header">
+        <h1 class="page-title">인기 상품 랭킹</h1>
+      </div>
+
+      <div class="tabs" data-ranking-tabs>
+        <span class="tab is-active" data-tab="daily">일간</span>
+        <span class="tab" data-tab="weekly">주간</span>
+      </div>
+
+      <div class="rank-list" data-rank-list></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function rankItem(item) {
+    return `
+      <a href="product-detail.html?id=${item.id}" class="rank-item">
+        <div class="rank-item__num">${item.rank}</div>
+        <div class="rank-item__thumb" data-thumb="${item.title}"></div>
+        <div class="rank-item__body">
+          <div class="rank-item__name">${item.title}</div>
+          <div class="rank-item__price">인기점수 ${item.score.toFixed(1)}</div>
+        </div>
+      </a>
+    `;
+  }
+
+  async function renderRanking(period) {
+    const listEl = document.querySelector("[data-rank-list]");
+    listEl.innerHTML = `<p class="text-faint">불러오는 중...</p>`;
+    try {
+      const data = period === "weekly" ? await Api.getRankingWeekly(20) : await Api.getRankingDaily(20);
+      if (!data || data.length === 0) {
+        listEl.innerHTML = `<p class="text-faint">아직 집계된 랭킹 데이터가 없습니다. (결제 완료 이벤트 기반으로 집계됩니다)</p>`;
+        return;
+      }
+      listEl.innerHTML = data.map((item, i) => rankItem({ ...item, rank: i + 1 })).join("");
+      listEl.querySelectorAll("[data-thumb]").forEach((el) => el.appendChild(renderThumb(el.dataset.thumb, "")));
+    } catch (e) {
+      listEl.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "랭킹을 불러오지 못했습니다.")}</p>`;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    renderRanking("daily");
+    document.querySelector("[data-ranking-tabs]").addEventListener("click", (e) => {
+      const tab = e.target.closest("[data-tab]");
+      if (!tab) return;
+      document.querySelectorAll("[data-ranking-tabs] .tab").forEach((t) => t.classList.remove("is-active"));
+      tab.classList.add("is-active");
+      renderRanking(tab.dataset.tab);
+    });
+  });
+</script>
+</body>
+</html>

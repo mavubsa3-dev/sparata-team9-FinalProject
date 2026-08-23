@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>상품 상세 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-search">
+        <span aria-hidden="true">🔍</span>
+        <input type="search" placeholder="상품을 검색해보세요" />
+      </div>
+      <div class="site-actions">
+        <a href="cart.html" class="icon-link">
+          🛒 장바구니
+          <span class="cart-badge" data-cart-badge hidden>0</span>
+        </a>
+        <span data-auth-area></span>
+      </div>
+    </div>
+    <div class="category-bar">
+      <div class="category-bar__inner" data-category-bar></div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <nav class="breadcrumb">
+        <a href="index.html">전체상품</a><span>›</span>
+        <span data-crumb-name>상품명</span>
+      </nav>
+
+      <div style="display:grid; grid-template-columns: 460px 1fr; gap: var(--space-7);">
+        <div class="product-card__thumb" data-thumb style="aspect-ratio:1/1;"></div>
+
+        <div>
+          <h1 style="font-size: var(--fs-2xl); font-weight:800;" data-detail-name>상품명</h1>
+          <p data-detail-status class="mt-2"></p>
+          <p style="font-size: var(--fs-2xl); font-weight:800; margin-top: var(--space-4);" data-detail-price>0원</p>
+
+          <div class="card mt-6">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span class="text-sub" style="font-weight:700;">수량</span>
+              <div class="stepper" data-qty-stepper>
+                <button type="button" data-qty-minus>−</button>
+                <input type="text" value="1" data-qty-input readonly />
+                <button type="button" data-qty-plus>+</button>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--color-border);">
+              <span class="text-sub" style="font-weight:700;">총 상품금액</span>
+              <span style="font-size: var(--fs-xl); font-weight:800;" data-total-price>0원</span>
+            </div>
+          </div>
+
+          <div style="display:flex; gap: var(--space-3); margin-top: var(--space-5);">
+            <button type="button" class="btn btn-outline btn-block" data-add-cart-btn>장바구니 담기</button>
+            <button type="button" class="btn btn-primary btn-block" data-buy-now-btn>바로 구매</button>
+          </div>
+          <p class="text-faint mt-2" style="font-size: var(--fs-xs);">※ 재고가 없는 상품은 구매할 수 없습니다.</p>
+        </div>
+      </div>
+
+      <section class="mt-6" style="margin-top: var(--space-8);">
+        <div class="tabs">
+          <span class="tab is-active">상품 설명</span>
+          <span class="tab">리뷰 (0)</span>
+        </div>
+        <p class="text-sub" data-detail-description style="line-height:1.8;"></p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <div class="site-footer__links">
+        <a href="#">이용약관</a>
+        <a href="#">개인정보처리방침</a>
+        <a href="#">고객센터</a>
+      </div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const id = Number(new URLSearchParams(location.search).get("id"));
+    const main = document.querySelector(".page-main .container");
+
+    let product;
+    try {
+      product = await Api.getProduct(id);
+    } catch (e) {
+      main.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "상품을 찾을 수 없습니다.")}</p>`;
+      return;
+    }
+
+    const purchasable = product.status === "ON_SALE" && product.stock > 0;
+
+    document.title = `${product.name} | 9신사`;
+    document.querySelector("[data-crumb-name]").textContent = product.name;
+    document.querySelector("[data-detail-name]").textContent = product.name;
+    document.querySelector("[data-detail-price]").textContent = formatPrice(product.price);
+    document.querySelector("[data-detail-description]").textContent = product.description;
+
+    const thumb = document.querySelector("[data-thumb]");
+    thumb.appendChild(renderThumb(product.name, product.thumbnailUrl));
+
+    const statusEl = document.querySelector("[data-detail-status]");
+    const label = PRODUCT_STATUS_LABEL[product.status];
+    statusEl.innerHTML = `<span class="badge ${label.cls}">${label.text}</span> <span class="text-faint">재고 ${product.stock}개</span>`;
+
+    const qtyInput = document.querySelector("[data-qty-input]");
+    const totalPriceEl = document.querySelector("[data-total-price]");
+    const updateTotal = () => {
+      totalPriceEl.textContent = formatPrice(Number(qtyInput.value) * product.price);
+    };
+    updateTotal();
+
+    document.querySelector("[data-qty-minus]").addEventListener("click", () => {
+      qtyInput.value = Math.max(1, Number(qtyInput.value) - 1);
+      updateTotal();
+    });
+    document.querySelector("[data-qty-plus]").addEventListener("click", () => {
+      qtyInput.value = Math.min(product.stock || 1, Number(qtyInput.value) + 1);
+      updateTotal();
+    });
+
+    async function addToCart() {
+      if (!isLoggedIn()) {
+        showToast("로그인이 필요합니다.");
+        setTimeout(() => (location.href = "login.html"), 500);
+        return false;
+      }
+      try {
+        await Api.addCartItem({ productId: product.id, quantity: Number(qtyInput.value) });
+        await initHeader();
+        return true;
+      } catch (e) {
+        showToast(apiErrorMessage(e, "장바구니 담기에 실패했습니다."));
+        return false;
+      }
+    }
+
+    const addBtn = document.querySelector("[data-add-cart-btn]");
+    const buyBtn = document.querySelector("[data-buy-now-btn]");
+    if (!purchasable) {
+      addBtn.disabled = true;
+      buyBtn.disabled = true;
+    } else {
+      addBtn.addEventListener("click", async () => {
+        if (await addToCart()) showToast("장바구니에 담았습니다.");
+      });
+      buyBtn.addEventListener("click", async () => {
+        if (await addToCart()) location.href = "checkout.html";
+      });
+    }
+  });
+</script>
+</body>
+</html>

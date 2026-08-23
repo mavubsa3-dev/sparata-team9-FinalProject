@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>주문내역 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <a href="cart.html" class="icon-link">
+          🛒 장바구니
+          <span class="cart-badge" data-cart-badge hidden>0</span>
+        </a>
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">마이페이지</h1>
+      </div>
+
+      <div class="layout-with-side">
+        <nav class="side-nav">
+          <a href="mypage.html">내 정보</a>
+          <a href="addresses.html">배송지 관리</a>
+          <a href="orders.html" class="is-active">주문내역</a>
+        </nav>
+
+        <div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>주문번호</th>
+                  <th>주문일시</th>
+                  <th>상품금액</th>
+                  <th>상태</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody data-orders-body></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const body = document.querySelector("[data-orders-body]");
+
+    if (!isLoggedIn()) {
+      body.innerHTML = `<tr><td colspan="5" class="text-faint">로그인이 필요합니다. <a href="login.html">로그인하러 가기</a></td></tr>`;
+      return;
+    }
+
+    let orders;
+    try {
+      orders = await Api.getOrders();
+    } catch (e) {
+      body.innerHTML = `<tr><td colspan="5" class="text-faint">${apiErrorMessage(e, "주문내역을 불러오지 못했습니다.")}</td></tr>`;
+      return;
+    }
+
+    if (orders.length === 0) {
+      body.innerHTML = `<tr><td colspan="5" class="text-faint">주문 내역이 없습니다.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = orders
+      .map((order) => {
+        const label = ORDER_STATUS_LABEL[order.status] || { text: order.status, cls: "badge-neutral" };
+        return `
+        <tr>
+          <td>${order.orderNumber}</td>
+          <td>${formatDate(order.createdAt)}</td>
+          <td>${formatPrice(order.totalProductAmount)}</td>
+          <td><span class="badge ${label.cls}">${label.text}</span></td>
+          <td><a href="order-detail.html?id=${order.orderId}" class="btn btn-ghost btn-sm">상세보기</a></td>
+        </tr>
+      `;
+      })
+      .join("");
+  });
+</script>
+</body>
+</html>
