@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>배송지 관리 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <a href="cart.html" class="icon-link">
+          🛒 장바구니
+          <span class="cart-badge" data-cart-badge hidden>0</span>
+        </a>
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">마이페이지</h1>
+      </div>
+
+      <div class="layout-with-side">
+        <nav class="side-nav">
+          <a href="mypage.html">내 정보</a>
+          <a href="addresses.html" class="is-active">배송지 관리</a>
+          <a href="orders.html">주문내역</a>
+        </nav>
+
+        <div>
+          <div class="page-header" style="margin-bottom: var(--space-4);">
+            <h2 style="font-size: var(--fs-md); font-weight:800;">배송지 목록</h2>
+            <button type="button" class="btn btn-primary btn-sm" data-add-address-btn>+ 새 배송지 추가</button>
+          </div>
+
+          <div data-address-list></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<div class="modal-overlay" data-address-modal hidden>
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title" data-modal-title>배송지 추가</span>
+      <button type="button" class="modal__close" data-modal-close>×</button>
+    </div>
+    <form data-address-form>
+      <div class="field-row">
+        <div class="field">
+          <label for="alias">배송지 별칭</label>
+          <input class="input" type="text" id="alias" placeholder="집, 회사 등" required />
+        </div>
+        <div class="field">
+          <label for="name">수령인</label>
+          <input class="input" type="text" id="name" required />
+        </div>
+      </div>
+      <div class="field">
+        <label for="phoneNumber">수령인 휴대폰 번호</label>
+        <input class="input" type="tel" id="phoneNumber" placeholder="010-1234-5678" required />
+      </div>
+      <div class="field">
+        <label for="zipCode">우편번호</label>
+        <input class="input" type="text" id="zipCode" placeholder="5자리 숫자" required />
+      </div>
+      <div class="field">
+        <label for="basicAddress">기본 주소</label>
+        <input class="input" type="text" id="basicAddress" required />
+      </div>
+      <div class="field">
+        <label for="detailAddress">상세 주소</label>
+        <input class="input" type="text" id="detailAddress" />
+      </div>
+      <div class="checkbox-row" data-is-default-row>
+        <input type="checkbox" id="isDefault" />
+        <label for="isDefault">기본 배송지로 설정</label>
+      </div>
+      <div class="modal__actions">
+        <button type="button" class="btn btn-outline" data-modal-close>취소</button>
+        <button type="submit" class="btn btn-primary">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  let currentAddresses = [];
+  let editingAddressId = null;
+
+  function addressCard(addr) {
+    return `
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <strong>${addr.alias}</strong>
+            ${addr.isDefault ? '<span class="badge badge-neutral" style="margin-left:6px;">기본배송지</span>' : ""}
+            <p class="text-sub mt-2" style="font-size: var(--fs-sm);">${addr.name} · ${addr.phoneNumber}</p>
+            <p class="text-faint mt-2" style="font-size: var(--fs-sm);">(${addr.zipCode}) ${addr.basicAddress} ${addr.detailAddress || ""}</p>
+          </div>
+          <div style="display:flex; gap: var(--space-2);">
+            <button type="button" class="btn btn-outline btn-sm" data-edit-btn="${addr.id}">수정</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-delete-btn="${addr.id}">삭제</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadAddresses() {
+    const listEl = document.querySelector("[data-address-list]");
+    if (!isLoggedIn()) {
+      listEl.innerHTML = `<p class="text-faint">로그인이 필요합니다. <a href="login.html">로그인하러 가기</a></p>`;
+      return;
+    }
+    try {
+      currentAddresses = await Api.getAddresses();
+    } catch (e) {
+      listEl.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "배송지를 불러오지 못했습니다.")}</p>`;
+      return;
+    }
+    listEl.innerHTML = currentAddresses.length
+      ? currentAddresses.map(addressCard).join("")
+      : `<p class="text-faint">등록된 배송지가 없습니다.</p>`;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadAddresses();
+
+    const modal = document.querySelector("[data-address-modal]");
+    const form = document.querySelector("[data-address-form]");
+
+    function openModal(addr) {
+      editingAddressId = addr ? addr.id : null;
+      document.querySelector("[data-modal-title]").textContent = addr ? "배송지 수정" : "배송지 추가";
+      // 신규 추가 시에는 isDefault를 서버로 보내지 않으므로(백엔드가 받지 않음) 체크박스 자체를 숨긴다.
+      document.querySelector("[data-is-default-row]").hidden = !addr;
+      form.reset();
+      if (addr) {
+        form.querySelector("#alias").value = addr.alias;
+        form.querySelector("#name").value = addr.name;
+        form.querySelector("#phoneNumber").value = addr.phoneNumber;
+        form.querySelector("#zipCode").value = addr.zipCode;
+        form.querySelector("#basicAddress").value = addr.basicAddress;
+        form.querySelector("#detailAddress").value = addr.detailAddress || "";
+        form.querySelector("#isDefault").checked = addr.isDefault;
+      }
+      modal.hidden = false;
+    }
+    const closeModal = () => (modal.hidden = true);
+
+    document.querySelector("[data-add-address-btn]").addEventListener("click", () => openModal(null));
+    document.querySelectorAll("[data-modal-close]").forEach((btn) => btn.addEventListener("click", closeModal));
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = {
+        alias: form.querySelector("#alias").value,
+        name: form.querySelector("#name").value,
+        phoneNumber: form.querySelector("#phoneNumber").value,
+        zipCode: form.querySelector("#zipCode").value,
+        basicAddress: form.querySelector("#basicAddress").value,
+        detailAddress: form.querySelector("#detailAddress").value,
+      };
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      try {
+        if (editingAddressId) {
+          body.isDefault = form.querySelector("#isDefault").checked;
+          await Api.updateAddress(editingAddressId, body);
+        } else {
+          await Api.createAddress(body);
+        }
+        showToast("배송지가 저장되었습니다.");
+        closeModal();
+        loadAddresses();
+      } catch (err) {
+        showToast(apiErrorMessage(err, "배송지 저장에 실패했습니다."));
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    document.querySelector("[data-address-list]").addEventListener("click", async (e) => {
+      if (e.target.matches("[data-delete-btn]")) {
+        const id = Number(e.target.dataset.deleteBtn);
+        try {
+          await Api.deleteAddress(id);
+          showToast("삭제되었습니다.");
+          loadAddresses();
+        } catch (err) {
+          showToast(apiErrorMessage(err, "삭제에 실패했습니다."));
+        }
+      } else if (e.target.matches("[data-edit-btn]")) {
+        const id = Number(e.target.dataset.editBtn);
+        const addr = currentAddresses.find((a) => a.id === id);
+        if (addr) openModal(addr);
+      }
+    });
+  });
+</script>
+</body>
+</html>

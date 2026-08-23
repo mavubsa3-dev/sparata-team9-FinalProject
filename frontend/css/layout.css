@@ -1,0 +1,318 @@
+/* 공통 레이아웃: 헤더, 푸터, 컨테이너 */
+
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+/* ---------- Header ---------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: var(--header-height);
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-5);
+}
+
+.site-logo {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex: 1;
+}
+
+.site-nav a {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--color-text-sub);
+  padding: var(--space-2) 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.site-nav a:hover,
+.site-nav a.is-active {
+  color: var(--color-text);
+  border-color: var(--color-black);
+}
+
+.site-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  max-width: 360px;
+  margin-left: auto;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+}
+
+.site-search:focus-within {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg);
+}
+
+.site-search input {
+  flex: 1;
+  font-size: var(--fs-sm);
+  background: transparent;
+}
+
+.site-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.site-actions a,
+.site-actions button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+
+.icon-link {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-badge[hidden] {
+  display: none;
+}
+
+.category-bar {
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.category-bar__inner {
+  display: flex;
+  gap: var(--space-3);
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  white-space: nowrap;
+}
+
+.category-chip {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--color-text-sub);
+}
+
+.category-chip.is-active {
+  background: var(--color-black);
+  color: #fff;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.site-footer__inner {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.site-footer__brand {
+  font-size: var(--fs-lg);
+  font-weight: 800;
+}
+
+.site-footer__links {
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--fs-sm);
+  color: var(--color-text-sub);
+}
+
+.site-footer__meta {
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+  line-height: 1.7;
+}
+
+/* ---------- Page shell ---------- */
+.page {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+}
+
+.page-main {
+  flex: 1;
+  padding: var(--space-6) 0 var(--space-8);
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.page-title {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  margin-top: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-text-sub);
+}
+
+.breadcrumb {
+  display: flex;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-4);
+}
+
+.breadcrumb a:hover {
+  color: var(--color-text-sub);
+}
+
+/* ---------- Auth pages ---------- */
+.auth-shell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-7) var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.auth-card__logo {
+  text-align: center;
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  margin-bottom: var(--space-6);
+}
+
+.auth-card__footer {
+  margin-top: var(--space-5);
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-sub);
+}
+
+.auth-card__footer a {
+  font-weight: 700;
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+/* ---------- Two-column with sidebar (마이페이지 등) ---------- */
+.layout-with-side {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  position: sticky;
+  top: calc(var(--header-height) + var(--space-5));
+}
+
+.side-nav a {
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--color-text-sub);
+}
+
+.side-nav a:hover {
+  background: var(--color-surface);
+}
+
+.side-nav a.is-active {
+  background: var(--color-black);
+  color: #fff;
+}
+
+@media (max-width: 860px) {
+  .site-nav {
+    display: none;
+  }
+  .site-search {
+    max-width: none;
+  }
+  .layout-with-side {
+    grid-template-columns: 1fr;
+  }
+  .side-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+}

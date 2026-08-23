@@ -6,7 +6,7 @@ export const options = {
             executor: 'constant-arrival-rate',
             rate: 1,
             timeUnit: '2s',        // 2초 당 1건
-            duration: '4m',        // 2분간 지속
+            duration: '4m',        // 4분간 지속
             preAllocatedVUs: 20,
             maxVUs: 50,
         },

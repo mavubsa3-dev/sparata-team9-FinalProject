@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - feat/user
+    paths-ignore:
+      - 'frontend/**'
 
 jobs:
   build:
