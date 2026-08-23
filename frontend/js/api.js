@@ -131,8 +131,11 @@ const Api = {
   getAdminPayments: () => apiFetch("/admin/payments"),
   getAdminPayment: (id) => apiFetch(`/admin/payments/${id}`),
 
+  134번째 줄부터 마지막 줄까지 넣으시면 될 거 같아요
+
+
   // 상품 이미지 업로드 (multipart/form-data라 apiFetch를 쓰지 않고 별도 처리)
-  uploadProductImage: async (file) => {
+  uploadProductImage: async (file, _isRetry = false) => {
     const formData = new FormData();
     formData.append("file", file);
     const accessToken = localStorage.getItem("accessToken");
@@ -141,6 +144,21 @@ const Api = {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       body: formData,
     });
+
+    // accessToken이 만료되어 401이 온 경우: refreshToken으로 재발급 후 한 번만 재시도한다.
+    if (res.status === 401 && accessToken && !_isRetry) {
+      try {
+        refreshPromise = refreshPromise || refreshAccessToken().finally(() => {
+          refreshPromise = null;
+        });
+        await refreshPromise;
+        return Api.uploadProductImage(file, true);
+      } catch (e) {
+        clearAuthAndNotify();
+        throw { code: "UNAUTHORIZED", message: "로그인이 만료되었습니다. 다시 로그인해주세요." };
+      }
+    }
+
     if (!res.ok) {
       const error = await res.json().catch(() => ({ code: "UNKNOWN", message: res.statusText }));
       throw error;
