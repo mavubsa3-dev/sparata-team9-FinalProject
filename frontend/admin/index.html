@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>관리자 대시보드 | 9신사</title>
+<link rel="stylesheet" href="../css/reset.css" />
+<link rel="stylesheet" href="../css/variables.css" />
+<link rel="stylesheet" href="../css/layout.css" />
+<link rel="stylesheet" href="../css/components.css" />
+<link rel="stylesheet" href="../css/admin.css" />
+</head>
+<body>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__logo">9신사<span>ADMIN</span></div>
+    <nav class="admin-nav">
+      <a href="index.html" class="is-active">대시보드</a>
+      <a href="categories.html">카테고리 관리</a>
+      <a href="products.html">상품 관리</a>
+      <a href="payments.html">결제 관리</a>
+    </nav>
+    <div class="admin-sidebar__footer">
+      <a href="../index.html" style="color:inherit;">← 고객 화면으로</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-topbar__title">대시보드</h1>
+        <p class="admin-topbar__desc">9신사 관리자 화면입니다.</p>
+      </div>
+    </div>
+
+    <div class="admin-stats">
+      <div class="stat-card">
+        <div class="stat-card__label">전체 상품 수</div>
+        <div class="stat-card__value" data-stat-products>0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">전체 카테고리 수</div>
+        <div class="stat-card__value" data-stat-categories>0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">품절 상품</div>
+        <div class="stat-card__value" data-stat-soldout>0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card__label">결제 완료 건수</div>
+        <div class="stat-card__value" data-stat-payments>0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">최근 결제</span>
+        <a href="payments.html" class="btn btn-ghost btn-sm">전체보기</a>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>결제ID</th>
+              <th>주문ID</th>
+              <th>결제금액</th>
+              <th>상태</th>
+              <th>결제일시</th>
+            </tr>
+          </thead>
+          <tbody data-recent-payments></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/mock-data.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const main = document.querySelector(".admin-main");
+    if (!isLoggedIn()) {
+      main.innerHTML = `<p class="text-faint">관리자 계정으로 로그인이 필요합니다. <a href="../login.html">로그인하러 가기</a></p>`;
+      return;
+    }
+
+    try {
+      const [categories, soldOutPage, allPage, payments] = await Promise.all([
+        Api.getAdminCategories(),
+        Api.getAdminProducts("status=SOLD_OUT&size=1"),
+        Api.getAdminProducts("size=1"),
+        Api.getAdminPayments(),
+      ]);
+
+      document.querySelector("[data-stat-categories]").textContent = categories.length;
+      document.querySelector("[data-stat-products]").textContent = allPage.page.totalElements.toLocaleString("ko-KR");
+      document.querySelector("[data-stat-soldout]").textContent = soldOutPage.page.totalElements.toLocaleString("ko-KR");
+      document.querySelector("[data-stat-payments]").textContent = payments.filter((p) => p.status === "PAID").length;
+
+      const recent = payments.slice(0, 10);
+      document.querySelector("[data-recent-payments]").innerHTML = recent.length
+        ? recent
+            .map((p) => {
+              const label = PAYMENT_STATUS_LABEL[p.status] || { text: p.status, cls: "badge-neutral" };
+              return `
+                <tr>
+                  <td>#${p.paymentId}</td>
+                  <td>#${p.orderId}</td>
+                  <td>${formatPrice(p.paymentAmount)}</td>
+                  <td><span class="badge ${label.cls}">${label.text}</span></td>
+                  <td>${formatDate(p.createdAt)}</td>
+                </tr>
+              `;
+            })
+            .join("")
+        : `<tr><td colspan="5" class="text-faint">결제 내역이 없습니다.</td></tr>`;
+    } catch (e) {
+      main.insertAdjacentHTML(
+        "beforeend",
+        `<p class="text-faint">${apiErrorMessage(e, "대시보드 데이터를 불러오지 못했습니다.")}</p>`
+      );
+    }
+  });
+</script>
+</body>
+</html>

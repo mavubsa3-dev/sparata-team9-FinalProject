@@ -1,0 +1,45 @@
+package com.example.demo.domain.user.service;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.demo.common.exception.CustomException;
+import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.domain.user.dto.request.UpdateUserinfoRequest;
+import com.example.demo.domain.user.dto.response.GetUserInfoResponse;
+import com.example.demo.domain.user.dto.response.UpdateUserResponse;
+import com.example.demo.domain.user.entity.User;
+import com.example.demo.domain.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+
+	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+
+	@Transactional(readOnly = true)
+	public GetUserInfoResponse userInfo(Long userId) {
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.USER_NOT_FOUND)
+		);
+		return GetUserInfoResponse.from(user);
+	}
+
+	@Transactional
+	public UpdateUserResponse updateUserInfo(UpdateUserinfoRequest request, Long userId) {
+		User user = userRepository.findById(userId).orElseThrow(
+			() -> new CustomException(ErrorCode.USER_NOT_FOUND)
+		);
+
+		// 회원 정보 업데이트
+		if (request.name() != null && !request.name().isBlank()) user.updateName(request.name());
+		if (request.password() != null && !request.password().isBlank()) user.updatePassword(passwordEncoder.encode(request.password()));
+		if (request.phoneNumber() != null && !request.phoneNumber().isBlank()) user.updatePhoneNumber(request.phoneNumber());
+
+		return UpdateUserResponse.from(user);
+	}
+}

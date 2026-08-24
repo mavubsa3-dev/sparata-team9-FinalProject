@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>내 정보 | 9신사</title>
+<link rel="stylesheet" href="css/reset.css" />
+<link rel="stylesheet" href="css/variables.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+<div class="page">
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a href="index.html" class="site-logo">9신사</a>
+      <nav class="site-nav">
+        <a href="index.html">전체상품</a>
+        <a href="ranking.html">랭킹</a>
+      </nav>
+      <div class="site-actions" style="margin-left:auto;">
+        <a href="cart.html" class="icon-link">
+          🛒 장바구니
+          <span class="cart-badge" data-cart-badge hidden>0</span>
+        </a>
+        <span data-auth-area></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">마이페이지</h1>
+      </div>
+
+      <div class="layout-with-side">
+        <nav class="side-nav">
+          <a href="mypage.html" class="is-active">내 정보</a>
+          <a href="addresses.html">배송지 관리</a>
+          <a href="orders.html">주문내역</a>
+        </nav>
+
+        <div>
+          <div class="card" style="max-width: 480px;">
+            <div class="card__title">내 정보 수정</div>
+            <form data-profile-form class="mt-4">
+              <div class="field">
+                <label for="email">이메일</label>
+                <input class="input" type="email" id="email" disabled />
+                <span class="hint">이메일은 변경할 수 없습니다.</span>
+              </div>
+              <div class="field">
+                <label for="name">이름</label>
+                <input class="input" type="text" id="name" />
+              </div>
+              <div class="field">
+                <label for="phoneNumber">전화번호</label>
+                <input class="input" type="tel" id="phoneNumber" placeholder="변경 시에만 입력 (조회 API에는 포함되지 않음)" />
+              </div>
+              <div class="field">
+                <label for="password">새 비밀번호</label>
+                <input class="input" type="password" id="password" placeholder="변경 시에만 입력" />
+                <span class="hint">영문, 숫자, 특수문자를 포함해 8~15자로 입력해주세요.</span>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">저장하기</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">9신사</div>
+      <p class="site-footer__meta">본 페이지는 팀 프로젝트 데모 화면이며 실제 서비스가 아닙니다.</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const main = document.querySelector(".page-main .container");
+
+    if (!isLoggedIn()) {
+      main.innerHTML = `<p class="text-faint">로그인이 필요합니다. <a href="login.html">로그인하러 가기</a></p>`;
+      return;
+    }
+
+    try {
+      const me = await Api.getMe();
+      document.querySelector("#email").value = me.email;
+      document.querySelector("#name").value = me.name;
+    } catch (e) {
+      main.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "내 정보를 불러오지 못했습니다.")}</p>`;
+      return;
+    }
+
+    document.querySelector("[data-profile-form]").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = {};
+      const name = document.querySelector("#name").value.trim();
+      const phoneNumber = document.querySelector("#phoneNumber").value.trim();
+      const password = document.querySelector("#password").value.trim();
+      if (name) body.name = name;
+      if (phoneNumber) body.phoneNumber = phoneNumber;
+      if (password) body.password = password;
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      try {
+        await Api.updateMe(body);
+        showToast("저장되었습니다.");
+        document.querySelector("#password").value = "";
+        document.querySelector("#phoneNumber").value = "";
+      } catch (err) {
+        showToast(apiErrorMessage(err, "저장에 실패했습니다."));
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  });
+</script>
+</body>
+</html>

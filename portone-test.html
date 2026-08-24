@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>PortOne 결제 테스트</title>
+  <script src="https://cdn.portone.io/v2/browser-sdk.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 480px; margin: 40px auto; }
+    label { display: block; margin-top: 12px; font-size: 14px; }
+    input { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
+    button { margin-top: 16px; padding: 10px 16px; cursor: pointer; }
+    #log { margin-top: 20px; padding: 12px; background: #f4f4f4; white-space: pre-wrap; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<h2>PortOne 결제 테스트 (EC2)</h2>
+
+<label>백엔드 주소
+  <input id="baseUrl" value="http://3.39.253.65:8080" />
+</label>
+
+<label>JWT 토큰 (로그인 후 발급받은 Access Token)
+  <input id="jwtToken" placeholder="Bearer 없이 토큰만" />
+</label>
+
+<label>내 결제 ID (DB payment.id, /api/payments 응답의 id)
+  <input id="dbPaymentId" placeholder="예: 1" />
+</label>
+
+<label>결제 금액 (원) -
+  <input id="amount" readonly style="background:#eee;" />
+</label>
+
+<label>주문명
+  <input id="orderName" value="테스트 주문" />
+</label>
+
+<label>구매자 이름
+  <input id="customerName" value="홍길동" />
+</label>
+
+<label>구매자 이메일
+  <input id="customerEmail" value="test@example.com" />
+</label>
+
+<label>구매자 휴대폰 번호
+  <input id="customerPhone" value="01012345678" />
+</label>
+
+<button onclick="requestPayment()">1. 결제창 띄우기</button>
+<button onclick="confirmPayment()" id="confirmBtn" disabled>2. 백엔드 승인 요청 (confirm)</button>
+
+<div id="log">여기에 로그가 표시됩니다.</div>
+
+<script>
+  let lastPortonePaymentId = null;
+
+  function log(msg) {
+    const el = document.getElementById('log');
+    el.textContent += '\n' + (typeof msg === 'string' ? msg : JSON.stringify(msg, null, 2));
+  }
+
+  async function getConfig() {
+    const baseUrl = document.getElementById('baseUrl').value;
+    const res = await fetch(baseUrl + '/api/config/portone');
+    if (!res.ok) throw new Error('설정 조회 실패: ' + res.status);
+    return res.json();
+  }
+
+  async function getPaymentInfo(dbPaymentId) {
+    const baseUrl = document.getElementById('baseUrl').value;
+    const token = document.getElementById('jwtToken').value;
+    const res = await fetch(baseUrl + '/api/payments/' + dbPaymentId, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error('결제 정보 조회 실패 (' + res.status + '): ' + JSON.stringify(body));
+    }
+    return res.json();
+  }
+
+  async function requestPayment() {
+    document.getElementById('log').textContent = '설정 조회 중...';
+    try {
+      const config = await getConfig();
+      log('설정 조회 성공: ' + JSON.stringify(config));
+
+      const dbPaymentId = document.getElementById('dbPaymentId').value;
+
+      log('결제 정보 조회 중 (payment.id=' + dbPaymentId + ')...');
+      const paymentInfo = await getPaymentInfo(dbPaymentId);
+      const amount = paymentInfo.paymentAmount;
+      document.getElementById('amount').value = amount;
+      log('결제 정보 조회 성공: ' + JSON.stringify(paymentInfo));
+
+      const orderName = document.getElementById('orderName').value;
+      const customerName = document.getElementById('customerName').value;
+      const customerEmail = document.getElementById('customerEmail').value;
+      const customerPhone = document.getElementById('customerPhone').value;
+      const paymentId = 'pay' + dbPaymentId + '-' + crypto.randomUUID().slice(0, 8);
+
+      log('결제창 호출 시작 (paymentId=' + paymentId + ')');
+
+      const response = await PortOne.requestPayment({
+        storeId: config.storeId,
+        channelKey: config.channelKey,
+        paymentId: paymentId,
+        orderName: orderName,
+        totalAmount: amount,
+        currency: 'CURRENCY_KRW',
+        payMethod: 'CARD',
+        customer: {
+          fullName: customerName,
+          email: customerEmail,
+          phoneNumber: customerPhone,
+        },
+      });
+
+      log('결제창 응답 전체: ' + JSON.stringify(response));
+
+      if (response.code != null) {
+        // 실패 (사용자가 창을 닫거나 결제 실패)
+        log('결제 실패: ' + response.message);
+        return;
+      }
+
+      lastPortonePaymentId = response.paymentId;
+      log('결제창 완료. portonePaymentId = ' + lastPortonePaymentId);
+      document.getElementById('confirmBtn').disabled = false;
+
+    } catch (err) {
+      log('에러: ' + err.message);
+    }
+  }
+
+  async function confirmPayment() {
+    const baseUrl = document.getElementById('baseUrl').value;
+    const token = document.getElementById('jwtToken').value;
+    const dbPaymentId = document.getElementById('dbPaymentId').value;
+
+    if (!lastPortonePaymentId) {
+      log('먼저 결제창을 통해 결제를 완료해주세요.');
+      return;
+    }
+
+    log('백엔드 승인 요청 중...');
+
+    try {
+      const res = await fetch(baseUrl + '/api/payments/' + dbPaymentId + '/confirm', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ portonePaymentId: lastPortonePaymentId })
+      });
+
+      if (res.status === 204) {
+        log('승인 성공! (204 No Content)');
+      } else {
+        const body = await res.json();
+        log('승인 실패 (' + res.status + '): ' + JSON.stringify(body));
+      }
+    } catch (err) {
+      log('에러: ' + err.message);
+    }
+  }
+</script>
+
+</body>
+</html>

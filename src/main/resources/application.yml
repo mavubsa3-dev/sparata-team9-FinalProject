@@ -1,0 +1,64 @@
+spring:
+  sql:
+    init:
+      mode: always
+
+  application:
+    name: demo
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-expire: 3600000
+  refresh-token-expire: 604800000
+
+portone:
+  base-url: https://api.portone.io
+  api-secret: ${PORTONE_API_SECRET}
+  store-id: ${PORTONE_STORE_ID}
+  channel-key: ${PORTONE_CHANNEL_KEY}
+  webhook-secret: ${PORTONE_WEBHOOK_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info"
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: health-app
+    version: 2.0.0
+
+logging:
+  level:
+    org.springframework.security: INFO
