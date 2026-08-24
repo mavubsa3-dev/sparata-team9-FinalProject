@@ -128,7 +128,7 @@ src
 - [상품 목록 조회 인덱싱](docs/features/product/product-indexing.md)
 - [카테고리 캐싱](docs/features/category/category-caching.md)
 - [인기 상품 랭킹 단건 조회 캐싱](docs/features/ranking/findproduct-caching.md)
-- [이메일 요청 처리량 개선](docs/features/notification/kafka-consumer group-seperation.md)
+- [이메일 요청 처리량 개선](docs/features/notification/kafka-consumer%20group-seperation.md)
 - [이메일 처리시간 단축](docs/features/notification/email-batch-optimization.md)
 - [팀 브로셔](https://www.notion.so/teamsparta/Team9-9-3b92dc3ef51480918992e73473343ad6?source=copy_link)
 
