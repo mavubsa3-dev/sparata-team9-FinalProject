@@ -106,14 +106,14 @@
 
   function rankPreviewCard(item) {
     return `
-      <a href="product-detail.html?id=${item.id}" class="product-card">
-        <div class="product-card__thumb" data-thumb="${item.title}">
-          <span class="badge product-card__badge" style="background:var(--color-accent); color:#fff;">${item.rank}위</span>
-        </div>
-        <div class="product-card__name">${item.title}</div>
-        <div class="product-card__price">인기점수 ${item.score.toFixed(1)}</div>
-      </a>
-    `;
+    <a href="product-detail.html?id=${item.id}" class="product-card">
+      <div class="product-card__thumb" data-thumb="${item.title}" data-thumb-url="${item.thumbnailUrl || ""}">
+        <span class="badge product-card__badge" style="background:var(--color-accent); color:#fff;">${item.rank}위</span>
+      </div>
+      <div class="product-card__name">${item.title}</div>
+      <div class="product-card__price">인기점수 ${item.score.toFixed(1)}</div>
+    </a>
+  `;
   }
 
   function mountThumbs(container) {

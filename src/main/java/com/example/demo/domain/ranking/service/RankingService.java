@@ -2,7 +2,9 @@ package com.example.demo.domain.ranking.service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,10 +54,7 @@ public class RankingService {
 			return Collections.emptyList();
 		}
 
-		return result.stream()
-			.filter(tuple -> tuple.getValue() != null && tuple.getScore() != null)
-			.map(this::toResponse)
-			.toList();
+		return toResponses(result);
 	}
 
 	// 1주일간 인기 상품 조회
@@ -85,10 +84,7 @@ public class RankingService {
 			return Collections.emptyList();
 		}
 
-		return result.stream()
-			.filter(tuple -> tuple.getValue() != null && tuple.getScore() != null)
-			.map(this::toResponse)
-			.toList();
+		return toResponses(result);
 	}
 
 	public GetProductInfoResponse getProductInRanking(Long productId){
@@ -184,17 +180,60 @@ public class RankingService {
 		return response;
 	}
 
-	private GetProductRankingResponse toResponse(ZSetOperations.TypedTuple<String> tuple){
+	private List<GetProductRankingResponse> toResponses(Set<ZSetOperations.TypedTuple<String>> result) {
 
-		String value = tuple.getValue();
-		double score = tuple.getScore();
+		if (result == null || result.isEmpty()) {
+			return Collections.emptyList();
+		}
 
-		String[] parts = value.split(":", 2);
+		List<ZSetOperations.TypedTuple<String>> tuples = result.stream()
+			.filter(t -> t.getValue() != null && t.getScore() != null)
+			.toList();
 
-		Long id = Long.parseLong(parts[0]);
-		String title = parts[1];
+		List<Long> productIds = tuples.stream()
+			.map(t -> Long.parseLong(t.getValue().split(":", 2)[0]))
+			.toList();
 
-		return new GetProductRankingResponse(id, title, score);
+
+		Map<Long, String> thumbnailMap = findThumbnailUrls(productIds);
+
+
+		return tuples.stream()
+			.map(t -> {
+				String[] parts = t.getValue().split(":", 2);
+				Long id = Long.parseLong(parts[0]);
+				String title = parts[1];
+				return new GetProductRankingResponse(
+					id,
+					title,
+					thumbnailMap.get(id),
+					t.getScore()
+				);
+			})
+			.toList();
+	}
+
+	private Map<Long, String> findThumbnailUrls(List<Long> productIds) {
+
+		HashOperations<String, String, String> hashOps = stringRedisTemplate.opsForHash();
+		Map<Long, String> thumbnailMap = new HashMap<>();
+		List<Long> missedIds = new ArrayList<>();
+
+		for (Long id : productIds) {
+			String cached = hashOps.get("product:info:" + id, "thumbnailUrl");
+			if (cached != null) {
+				thumbnailMap.put(id, cached);
+			} else {
+				missedIds.add(id);
+			}
+		}
+
+		if (!missedIds.isEmpty()) {
+			productRepository.findAllById(missedIds)
+				.forEach(p -> thumbnailMap.put(p.getId(), p.getThumbnailUrl()));
+		}
+
+		return thumbnailMap;
 	}
 
 }

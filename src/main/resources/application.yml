@@ -38,6 +38,13 @@ jwt:
   access-token-expire: 3600000
   refresh-token-expire: 604800000
 
+portone:
+  base-url: https://api.portone.io
+  api-secret: ${PORTONE_API_SECRET}
+  store-id: ${PORTONE_STORE_ID}
+  channel-key: ${PORTONE_CHANNEL_KEY}
+  webhook-secret: ${PORTONE_WEBHOOK_SECRET}
+
 management:
   endpoints:
     web:

@@ -57,15 +57,15 @@
 <script>
   function rankItem(item) {
     return `
-      <a href="product-detail.html?id=${item.id}" class="rank-item">
-        <div class="rank-item__num">${item.rank}</div>
-        <div class="rank-item__thumb" data-thumb="${item.title}"></div>
-        <div class="rank-item__body">
-          <div class="rank-item__name">${item.title}</div>
-          <div class="rank-item__price">인기점수 ${item.score.toFixed(1)}</div>
-        </div>
-      </a>
-    `;
+    <a href="product-detail.html?id=${item.id}" class="rank-item">
+      <div class="rank-item__num">${item.rank}</div>
+      <div class="rank-item__thumb" data-thumb="${item.title}" data-thumb-url="${item.thumbnailUrl || ""}"></div>
+      <div class="rank-item__body">
+        <div class="rank-item__name">${item.title}</div>
+        <div class="rank-item__price">인기점수 ${item.score.toFixed(1)}</div>
+      </div>
+    </a>
+  `;
   }
 
   async function renderRanking(period) {
@@ -78,7 +78,8 @@
         return;
       }
       listEl.innerHTML = data.map((item, i) => rankItem({ ...item, rank: i + 1 })).join("");
-      listEl.querySelectorAll("[data-thumb]").forEach((el) => el.appendChild(renderThumb(el.dataset.thumb, "")));
+      listEl.querySelectorAll("[data-thumb]").forEach((el) =>
+              el.appendChild(renderThumb(el.dataset.thumb, el.dataset.thumbUrl || "")));
     } catch (e) {
       listEl.innerHTML = `<p class="text-faint">${apiErrorMessage(e, "랭킹을 불러오지 못했습니다.")}</p>`;
     }
