@@ -1,8 +1,8 @@
-name: Deploy to EC2 from my-branches
+name: Deploy to EC2
 on:
   push:
     branches:
-      - feat/user
+      - main
     paths-ignore:
       - 'frontend/**'
 
@@ -89,6 +89,7 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           envs: AWS_REGION, AWS_ACCOUNT_ID, ECR_REPOSITORY, SHORT_SHA
+          script_stop: true
           script: |
             IMAGE_TAG=$(echo $SHORT_SHA | cut -c1-7)
             IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY
